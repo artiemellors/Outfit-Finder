@@ -17,6 +17,72 @@ export interface Product {
   name: string
   price: string
   productUrl?: string
+  imageUrl?: string
+}
+
+function mapProducts(candidates: Record<string, unknown>[]): Product[] {
+  return candidates.slice(0, 24).map((item, i) => ({
+    name: String(item.name ?? item.displayName ?? item.title ?? item.productName ?? `Product ${i + 1}`),
+    price: String(
+      (item.price as Record<string, unknown>)?.current ??
+      (item.price as Record<string, unknown>)?.min ??
+      (item.price as Record<string, unknown>)?.value ??
+      item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ?? 'Unknown'
+    ),
+    productUrl: item.url != null ? String(item.url)
+      : item.productUrl != null ? String(item.productUrl)
+      : item.pdpUrl != null ? String(item.pdpUrl)
+      : undefined,
+    imageUrl: item.primaryImage != null
+      ? String((item.primaryImage as Record<string, unknown>).url ?? item.primaryImage)
+      : Array.isArray(item.images) && (item.images as unknown[]).length > 0
+        ? String(((item.images as Record<string, unknown>[])[0]).url ?? (item.images as unknown[])[0])
+        : item.imageUrl != null ? String(item.imageUrl)
+        : item.image != null ? String(item.image)
+        : item.thumbnail != null ? String(item.thumbnail)
+        : undefined,
+  }))
+}
+
+async function extractFromNextData(page: Page): Promise<Product[]> {
+  const nextData = await page.evaluate(() => {
+    const el = document.getElementById('__NEXT_DATA__')
+    if (!el?.textContent) return null
+    try { return JSON.parse(el.textContent) } catch { return null }
+  }) as Record<string, unknown> | null
+
+  if (!nextData) {
+    console.log('[__NEXT_DATA__] Script tag not found on page')
+    return []
+  }
+
+  console.log('[__NEXT_DATA__] Found. Top-level keys:', Object.keys(nextData))
+  const pageProps = (nextData?.props as Record<string, unknown>)?.pageProps as Record<string, unknown> | undefined
+  if (!pageProps) {
+    console.log('[__NEXT_DATA__] No props.pageProps found')
+    return []
+  }
+  console.log('[__NEXT_DATA__] pageProps keys:', Object.keys(pageProps))
+
+  const candidates = (
+    (pageProps?.initialData as Record<string, unknown>)?.search?.products ??
+    (pageProps?.searchResults as Record<string, unknown>)?.products ??
+    (pageProps?.data as Record<string, unknown>)?.search?.products ??
+    (pageProps?.initialState as Record<string, unknown>)?.search?.products ??
+    (pageProps?.searchData as Record<string, unknown>)?.products ??
+    pageProps?.products ??
+    []
+  ) as Record<string, unknown>[]
+
+  if (!candidates.length) {
+    console.log('[__NEXT_DATA__] No products found in known paths. Logging pageProps structure:')
+    console.log(JSON.stringify(pageProps, null, 2).slice(0, 3000))
+    return []
+  }
+
+  const products = mapProducts(candidates)
+  console.log(`[__NEXT_DATA__] Extracted ${products.length} products (imageUrl present on ${products.filter(p => p.imageUrl).length})`)
+  return products
 }
 
 interface ComputerInput {
@@ -139,7 +205,14 @@ export async function searchKmart(query: string): Promise<Product[]> {
     console.log('[Browser] Waiting for page to render...')
     await page.waitForTimeout(4000)
 
-    // Fast path: try extracting from intercepted API responses
+    // Fast path 1: __NEXT_DATA__ DOM extraction (works if search page is SSR)
+    const nextDataProducts = await extractFromNextData(page)
+    if (nextDataProducts.length > 0) {
+      console.log('[__NEXT_DATA__] Success — skipping API interception and vision loop.')
+      return nextDataProducts
+    }
+
+    // Fast path 2: try extracting from intercepted API responses
     if (capturedApiResponses.length > 0) {
       console.log(`[API intercept] Attempting direct extraction from ${capturedApiResponses.length} captured response(s)...`)
       for (const raw of capturedApiResponses) {
@@ -171,23 +244,7 @@ export async function searchKmart(query: string): Promise<Product[]> {
           ) as Record<string, unknown>[]
 
           if (candidates.length > 0) {
-            products = candidates.slice(0, 24).map((item, i) => ({
-              name: String(item.name ?? item.displayName ?? item.title ?? item.productName ?? `Product ${i + 1}`),
-              price: String(
-                (item.price as Record<string, unknown>)?.current ??
-                (item.price as Record<string, unknown>)?.min ??
-                (item.price as Record<string, unknown>)?.value ??
-                item.priceLabel ??
-                item.salePrice ??
-                item.regularPrice ??
-                item.price ??
-                'Unknown',
-              ),
-              productUrl: item.url != null ? String(item.url)
-                : item.productUrl != null ? String(item.productUrl)
-                : item.pdpUrl != null ? String(item.pdpUrl)
-                : undefined,
-            }))
+            products = mapProducts(candidates)
             console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
             return products
           } else {
@@ -225,6 +282,7 @@ export async function searchKmart(query: string): Promise<Product[]> {
                   name: { type: 'string', description: 'Full product name as shown on screen' },
                   price: { type: 'string', description: 'Price as displayed, e.g. "$15.00"' },
                   productUrl: { type: 'string', description: 'Product page URL if readable (optional)' },
+                  imageUrl: { type: 'string', description: 'Product image URL if readable from page source (optional)' },
                 },
                 required: ['name', 'price'],
               },
