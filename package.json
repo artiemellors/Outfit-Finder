@@ -1,0 +1,17 @@
+{
+  "name": "outfit-finder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:scraper": "npx tsx scripts/test-scraper.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.0",
+    "typescript": "^5"
+  }
+}
