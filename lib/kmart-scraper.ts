@@ -8,7 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { firefox, type Page } from 'playwright'
 
-const MODEL = 'claude-opus-4-6'
+const MODEL = 'claude-sonnet-4-6'
 const VIEWPORT = { width: 1280, height: 800 }
 const MAX_ITERATIONS = 25
 const SEARCH_BASE_URL = 'https://www.kmart.com.au/search/?searchTerm='
