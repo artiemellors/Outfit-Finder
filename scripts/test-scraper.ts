@@ -155,7 +155,8 @@ async function searchKmart(query: string): Promise<Product[]> {
   // Intercept Kmart's internal search API responses.
   // The site is a React SPA that fetches product JSON from an internal API.
   // If we capture it, we can skip the Claude vision loop entirely.
-  let capturedApiJson: unknown = null
+  // Collect ALL matching responses (homepage + search page may both fire).
+  const capturedApiResponses: unknown[] = []
   const KMART_API_PATTERNS = [
     /api\.kmart\.com\.au/,
     /\/api\/.*search/i,
@@ -168,7 +169,8 @@ async function searchKmart(query: string): Promise<Product[]> {
     const ct = response.headers()['content-type'] ?? ''
     if (!ct.includes('application/json')) return
     try {
-      capturedApiJson = await response.json()
+      const json = await response.json()
+      capturedApiResponses.push(json)
       console.log(`[API intercept] Captured JSON from: ${url}`)
     } catch {
       // body already consumed or parse error — ignore
@@ -200,29 +202,69 @@ async function searchKmart(query: string): Promise<Product[]> {
     await page.waitForTimeout(4000)
 
     // Fast path: if API interception captured product JSON, extract directly.
-    if (capturedApiJson) {
-      console.log('[API intercept] Attempting direct extraction from captured JSON...')
-      try {
-        const json = capturedApiJson as Record<string, unknown>
-        const candidates: Record<string, unknown>[] =
-          (json?.results as Record<string, unknown>[]) ??
-          ((json?.data as Record<string, unknown>)?.search as Record<string, unknown>)?.products as Record<string, unknown>[] ??
-          (json?.products as Record<string, unknown>[]) ??
-          []
-        if (candidates.length > 0) {
-          products = candidates.slice(0, 12).map((item, i) => ({
-            name: String(item.name ?? item.displayName ?? item.title ?? `Product ${i + 1}`),
-            price: String(
-              (item.price as Record<string, unknown>)?.current ?? item.priceLabel ?? item.price ?? 'Unknown',
-            ),
-            productUrl: item.url != null ? String(item.url) : item.productUrl != null ? String(item.productUrl) : undefined,
-          }))
-          console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
-          return products
+    if (capturedApiResponses.length > 0) {
+      console.log(`[API intercept] Attempting direct extraction from ${capturedApiResponses.length} captured response(s)...`)
+      for (const raw of capturedApiResponses) {
+        try {
+          const json = raw as Record<string, unknown>
+          // Debug: show top-level shape so we can tune the parser if needed
+          console.log('[API debug] Top-level keys:', Object.keys(json))
+          if (json.data && typeof json.data === 'object') {
+            console.log('[API debug] data keys:', Object.keys(json.data as object))
+          }
+
+          // Try every known Kmart GraphQL response shape, most specific first
+          const data = json?.data as Record<string, unknown> | undefined
+          const candidates: Record<string, unknown>[] = (
+            // Kmart search API shapes
+            (data?.search as Record<string, unknown>)?.products ??
+            (data?.search as Record<string, unknown>)?.results ??
+            (data?.search as Record<string, unknown>)?.items ??
+            (data?.searchResults as Record<string, unknown>)?.products ??
+            (data?.searchPage as Record<string, unknown>)?.products ??
+            (data?.categoryOrSearch as Record<string, unknown>)?.products ??
+            (data?.kmart as Record<string, unknown>)?.search ??
+            data?.products ??
+            data?.results ??
+            data?.items ??
+            // Top-level shapes (non-GraphQL REST responses)
+            json?.results ??
+            json?.products ??
+            json?.items ??
+            // ElasticSearch-style
+            (json?.hits as Record<string, unknown>)?.hits ??
+            json?.hits ??
+            []
+          ) as Record<string, unknown>[]
+
+          if (candidates.length > 0) {
+            products = candidates.slice(0, 24).map((item, i) => ({
+              name: String(item.name ?? item.displayName ?? item.title ?? item.productName ?? `Product ${i + 1}`),
+              price: String(
+                (item.price as Record<string, unknown>)?.current ??
+                (item.price as Record<string, unknown>)?.min ??
+                (item.price as Record<string, unknown>)?.value ??
+                item.priceLabel ??
+                item.salePrice ??
+                item.regularPrice ??
+                item.price ??
+                'Unknown',
+              ),
+              productUrl: item.url != null ? String(item.url)
+                : item.productUrl != null ? String(item.productUrl)
+                : item.pdpUrl != null ? String(item.pdpUrl)
+                : undefined,
+            }))
+            console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
+            return products
+          } else {
+            console.log('[API debug] No candidates found in this response — shape unrecognised.')
+          }
+        } catch (parseErr) {
+          console.log('[API intercept] Could not parse JSON shape:', (parseErr as Error).message)
         }
-      } catch (parseErr) {
-        console.log('[API intercept] Could not parse JSON shape:', (parseErr as Error).message)
       }
+      console.log('[API intercept] No usable products found across all captured responses.')
     }
 
     // Tool definitions
@@ -275,8 +317,9 @@ async function searchKmart(query: string): Promise<Product[]> {
         content:
           `The browser is open on the Kmart Australia search results page for: "${query}". ` +
           `Take a screenshot to see what is on screen. ` +
-          `If you can see product listings, immediately call extract_products with all the products you can see (aim for 5-8). ` +
           `If a cookie/consent popup appears, close it first. ` +
+          `If you can see product listings, extract as many as possible — aim for at least 12 products. ` +
+          `If fewer than 12 are visible, scroll down to reveal more, then call extract_products once with everything you found. ` +
           `If the page hasn't loaded yet, wait a moment and take another screenshot.`,
       },
     ]
