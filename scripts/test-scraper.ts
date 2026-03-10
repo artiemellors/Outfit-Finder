@@ -10,7 +10,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk'
-import { chromium, type Page } from 'playwright'
+import { firefox, type Page } from 'playwright'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 
@@ -138,65 +138,92 @@ async function executeComputerAction(
 async function searchKmart(query: string): Promise<Product[]> {
   const client = new Anthropic()
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--no-sandbox',
-    ],
-  })
+  // Firefox uses NSS (not BoringSSL like Chromium), giving it a different
+  // TLS/JA3 fingerprint that Akamai's bot detection doesn't block.
+  const browser = await firefox.launch({ headless: true })
   const context = await browser.newContext({
     viewport: VIEWPORT,
-    userAgent:
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
-      '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    // Don't spoof the UA — a Firefox TLS fingerprint + Chrome UA is a
+    // detectable contradiction. Let Firefox send its own UA string.
     locale: 'en-AU',
     timezoneId: 'Australia/Sydney',
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-AU,en;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Sec-Fetch-User': '?1',
-      'Upgrade-Insecure-Requests': '1',
-    },
-  })
-
-  // Remove automation fingerprints that Akamai detects
-  await context.addInitScript(() => {
-    // Hide webdriver flag
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
-    // Spoof plugins to look like a real browser
-    Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3, 4, 5],
-    })
-    // Spoof languages
-    Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-AU', 'en'],
-    })
-    // Remove chrome automation markers
-    // @ts-ignore
-    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array
-    // @ts-ignore
-    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise
-    // @ts-ignore
-    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol
+    extraHTTPHeaders: { 'Accept-Language': 'en-AU,en;q=0.9' },
   })
 
   const page = await context.newPage()
+
+  // Intercept Kmart's internal search API responses.
+  // The site is a React SPA that fetches product JSON from an internal API.
+  // If we capture it, we can skip the Claude vision loop entirely.
+  let capturedApiJson: unknown = null
+  const KMART_API_PATTERNS = [
+    /api\.kmart\.com\.au/,
+    /\/api\/.*search/i,
+    /graphql/i,
+  ]
+  page.on('response', async (response) => {
+    const url = response.url()
+    if (!KMART_API_PATTERNS.some((pat) => pat.test(url))) return
+    if (!response.ok()) return
+    const ct = response.headers()['content-type'] ?? ''
+    if (!ct.includes('application/json')) return
+    try {
+      capturedApiJson = await response.json()
+      console.log(`[API intercept] Captured JSON from: ${url}`)
+    } catch {
+      // body already consumed or parse error — ignore
+    }
+  })
   let products: Product[] = []
 
   try {
+    // Warm up via homepage first — may establish Akamai session cookies
+    // that make the subsequent search navigation pass bot checks.
+    console.log('\n[Browser] Warming up via homepage...')
+    try {
+      await page.goto('https://www.kmart.com.au', {
+        waitUntil: 'domcontentloaded',
+        timeout: 20_000,
+      })
+      await page.waitForTimeout(2000)
+      console.log(`[Browser] Homepage loaded: "${await page.title()}"`)
+    } catch (err) {
+      console.log('[Browser] Homepage warm-up failed (non-fatal):', (err as Error).message)
+    }
+
     const url = SEARCH_BASE_URL + encodeURIComponent(query)
     console.log(`\n[Browser] Navigating to: ${url}`)
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 
-    // Give JS time to render the product grid
+    // Give JS time to render the product grid and fire API requests
     console.log('[Browser] Waiting for page to render...')
-    await page.waitForTimeout(3000)
+    await page.waitForTimeout(4000)
+
+    // Fast path: if API interception captured product JSON, extract directly.
+    if (capturedApiJson) {
+      console.log('[API intercept] Attempting direct extraction from captured JSON...')
+      try {
+        const json = capturedApiJson as Record<string, unknown>
+        const candidates: Record<string, unknown>[] =
+          (json?.results as Record<string, unknown>[]) ??
+          ((json?.data as Record<string, unknown>)?.search as Record<string, unknown>)?.products as Record<string, unknown>[] ??
+          (json?.products as Record<string, unknown>[]) ??
+          []
+        if (candidates.length > 0) {
+          products = candidates.slice(0, 12).map((item, i) => ({
+            name: String(item.name ?? item.displayName ?? item.title ?? `Product ${i + 1}`),
+            price: String(
+              (item.price as Record<string, unknown>)?.current ?? item.priceLabel ?? item.price ?? 'Unknown',
+            ),
+            productUrl: item.url != null ? String(item.url) : item.productUrl != null ? String(item.productUrl) : undefined,
+          }))
+          console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
+          return products
+        }
+      } catch (parseErr) {
+        console.log('[API intercept] Could not parse JSON shape:', (parseErr as Error).message)
+      }
+    }
 
     // Tool definitions
     const tools: Anthropic.Beta.BetaTool[] = [
@@ -266,7 +293,7 @@ async function searchKmart(query: string): Promise<Product[]> {
           'You are a web navigation assistant. A browser is open and controlled by Playwright. ' +
           'Your only goal is to extract product data from the Kmart Australia search results page. ' +
           'Be efficient: take a screenshot, identify products, call extract_products. ' +
-          'If you see an Access Denied or bot-detection page, try pressing F5 to reload once, then wait 3 seconds and screenshot again. ' +
+          'If you see an Access Denied or error page, report it clearly in text and stop. ' +
           'Do not navigate away from the search results page.',
         tools,
         messages,
