@@ -138,7 +138,14 @@ async function executeComputerAction(
 async function searchKmart(query: string): Promise<Product[]> {
   const client = new Anthropic()
 
-  const browser = await chromium.launch({ headless: true })
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--no-sandbox',
+    ],
+  })
   const context = await browser.newContext({
     viewport: VIEWPORT,
     userAgent:
@@ -146,7 +153,39 @@ async function searchKmart(query: string): Promise<Product[]> {
       '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     locale: 'en-AU',
     timezoneId: 'Australia/Sydney',
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-AU,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+    },
   })
+
+  // Remove automation fingerprints that Akamai detects
+  await context.addInitScript(() => {
+    // Hide webdriver flag
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
+    // Spoof plugins to look like a real browser
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5],
+    })
+    // Spoof languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-AU', 'en'],
+    })
+    // Remove chrome automation markers
+    // @ts-ignore
+    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array
+    // @ts-ignore
+    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise
+    // @ts-ignore
+    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol
+  })
+
   const page = await context.newPage()
   let products: Product[] = []
 
@@ -227,6 +266,7 @@ async function searchKmart(query: string): Promise<Product[]> {
           'You are a web navigation assistant. A browser is open and controlled by Playwright. ' +
           'Your only goal is to extract product data from the Kmart Australia search results page. ' +
           'Be efficient: take a screenshot, identify products, call extract_products. ' +
+          'If you see an Access Denied or bot-detection page, try pressing F5 to reload once, then wait 3 seconds and screenshot again. ' +
           'Do not navigate away from the search results page.',
         tools,
         messages,
