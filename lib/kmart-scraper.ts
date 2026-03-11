@@ -57,10 +57,17 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
   })
 }
 
+// Restrict to adult categories — excludes Boys Clothing, Girls Clothing, Baby, Schoolwear, Kids Shoes
+const ADULT_CATEGORY_FILTER =
+  '&filters%5BCategory%5D%5B%5D=Clothing' +
+  '&filters%5BCategory%5D%5B%5D=Activewear' +
+  '&filters%5BCategory%5D%5B%5D=Shoes'
+
 export async function searchKmart(query: string): Promise<Product[]> {
   const url =
     `https://ac.cnstrc.com/search/${encodeURIComponent(query)}` +
-    `?key=key_GZTqlLr41FS2p7AY&c=ciojs-client-2.71.1&num_results_per_page=24`
+    `?key=key_GZTqlLr41FS2p7AY&c=ciojs-client-2.71.1&num_results_per_page=24` +
+    ADULT_CATEGORY_FILTER
   console.log(`\n[Search] ${query}`)
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) {
