@@ -45,8 +45,8 @@ function ItemCard({
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
       <div className="flex gap-4 sm:gap-6">
-        {/* Image */}
-        <div className="w-20 h-20 sm:w-[100px] sm:h-[100px] shrink-0 bg-[#f0ece6] rounded-sm overflow-hidden">
+        {/* Image — 4:5 portrait ratio */}
+        <div className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0ece6] rounded-sm overflow-hidden">
           {product.imageUrl ? (
             <img
               key={idx}
