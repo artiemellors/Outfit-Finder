@@ -1,14 +1,137 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import OutfitResults, { type Outfit } from './components/OutfitResults'
 
+// ─── Editorial rotating copy ────────────────────────────────────────────────
+
+const PHASE_COPY = {
+  thinking:  ['Reading your brief…', 'Studying your aesthetic…', 'Understanding the look…'],
+  searching: ['Hunting down the best fits…', 'Browsing the racks…', 'Sourcing the pieces…', 'Checking every aisle…'],
+  curating:  ['Pulling the look together…', 'Almost dressed…', 'Finishing touches…', 'Nearly ready to wear…'],
+}
+
+type Phase = keyof typeof PHASE_COPY
+
+function useRotatingCopy(phase: Phase) {
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    setIdx(0)
+    setVisible(true)
+  }, [phase])
+
+  useEffect(() => {
+    const lines = PHASE_COPY[phase]
+    if (lines.length <= 1) return
+    const id = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIdx(i => (i + 1) % lines.length)
+        setVisible(true)
+      }, 350)
+    }, 2500)
+    return () => clearInterval(id)
+  }, [phase])
+
+  return { copy: PHASE_COPY[phase][idx], visible }
+}
+
+// ─── Loading state ───────────────────────────────────────────────────────────
+
+function LoadingState({ statuses }: { statuses: string[] }) {
+  const hasFound     = statuses.some(s => s.startsWith('Found'))
+  const hasSearching = statuses.some(s => s.startsWith('Searching'))
+  const phase: Phase = hasFound ? 'curating' : hasSearching ? 'searching' : 'thinking'
+  const searchCount  = statuses.filter(s => s.startsWith('Searching')).length
+
+  const { copy, visible } = useRotatingCopy(phase)
+
+  const subLabel = {
+    thinking:  'One moment…',
+    searching: `Across ${searchCount} categor${searchCount === 1 ? 'y' : 'ies'}`,
+    curating:  'Selecting the best combinations',
+  }[phase]
+
+  return (
+    <div className="mt-10" style={{ animation: 'fadeUp 0.4s ease both' }}>
+      {/* Phase header */}
+      <div className="flex items-baseline gap-3 mb-4">
+        <span
+          className="font-serif text-2xl font-light text-[#1a1714] transition-opacity duration-[400ms]"
+          style={{ opacity: visible ? 1 : 0 }}
+        >
+          {copy}
+        </span>
+        <span className="text-sm text-[rgba(26,23,20,0.4)] hidden sm:block">{subLabel}</span>
+      </div>
+
+      {/* Indeterminate progress bar */}
+      <div className="relative h-px bg-black/[0.06] overflow-hidden mb-10">
+        <div
+          className="absolute inset-y-0 left-0 w-1/3 bg-[var(--accent)]"
+          style={{ animation: 'progressSweep 1.8s ease-in-out infinite' }}
+        />
+      </div>
+
+      {/* Skeleton layout — mirrors the 2-col results grid */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-[300px_1fr]">
+        {/* Summary sidebar skeleton */}
+        <div className="bg-white border border-black/[0.08] rounded-sm p-7">
+          <div className="skeleton h-2 w-16 rounded mb-3" />
+          <div className="w-10 h-0.5 bg-[#e8e3dc] mb-7" />
+          <div className="skeleton h-6 w-3/4 rounded mb-2" />
+          <div className="skeleton h-6 w-1/2 rounded mb-7" />
+          <div className="space-y-2 mb-8">
+            <div className="skeleton h-2.5 w-full rounded" />
+            <div className="skeleton h-2.5 w-full rounded" />
+            <div className="skeleton h-2.5 w-2/3 rounded" />
+          </div>
+          <div className="pt-5 border-t border-black/[0.08] flex items-end justify-between">
+            <div>
+              <div className="skeleton h-2 w-20 rounded mb-2" />
+              <div className="skeleton h-9 w-20 rounded" />
+            </div>
+            <div className="skeleton h-3 w-10 rounded" />
+          </div>
+          <div className="skeleton h-11 w-full rounded-sm mt-6" />
+        </div>
+
+        {/* Item card skeletons */}
+        <div className="flex flex-col gap-0.5">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="bg-white border border-black/[0.08] p-5 sm:p-6">
+              <div className="flex gap-4 sm:gap-6">
+                <div className="skeleton w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 rounded-sm" />
+                <div className="flex-1 pt-1 space-y-2.5">
+                  <div className="skeleton h-2 w-12 rounded" />
+                  <div className="skeleton h-5 w-3/4 rounded" />
+                  <div className="skeleton h-2.5 w-full rounded" />
+                  <div className="skeleton h-2.5 w-2/3 rounded" />
+                  <div className="flex gap-2 pt-2">
+                    <div className="skeleton h-7 w-7 rounded-sm" />
+                    <div className="skeleton h-7 w-9 rounded-sm" />
+                    <div className="skeleton h-7 w-7 rounded-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default function Home() {
-  const [query, setQuery] = useState('')
+  const [query, setQuery]     = useState('')
   const [statuses, setStatuses] = useState<string[]>([])
-  const [result, setResult] = useState<Outfit[] | null>(null)
+  const [result, setResult]   = useState<Outfit[] | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,7 +147,7 @@ export default function Home() {
       body: JSON.stringify({ query }),
     })
 
-    const reader = res.body!.getReader()
+    const reader  = res.body!.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
 
@@ -37,9 +160,9 @@ export default function Home() {
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
         const event = JSON.parse(line.slice(6)) as { type: string; message?: string; result?: unknown }
-        if (event.type === 'status') setStatuses(s => [...s, event.message!])
-        else if (event.type === 'done') { setResult(event.result as Outfit[]); setLoading(false) }
-        else if (event.type === 'error') { setError(event.message!); setLoading(false) }
+        if (event.type === 'status')      setStatuses(s => [...s, event.message!])
+        else if (event.type === 'done')   { setResult(event.result as Outfit[]); setLoading(false) }
+        else if (event.type === 'error')  { setError(event.message!); setLoading(false) }
       }
     }
   }
@@ -52,7 +175,6 @@ export default function Home() {
         style={{ animation: 'fadeDown 0.6s ease both' }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between">
-          {/* Serif logo: "Outfit" regular + "Kurator" italic accent */}
           <span className="font-serif text-[22px] font-normal tracking-[0.08em] text-[#1a1714]">
             Outfit <em style={{ color: 'var(--accent)' }}>Kurator</em>
           </span>
@@ -62,30 +184,24 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero + search */}
       <section
         className="max-w-4xl mx-auto px-4 sm:px-8 pt-14 pb-10"
         style={{ animation: 'fadeUp 0.7s 0.1s ease both' }}
       >
-        {/* Eyebrow */}
         <div className="flex items-center gap-2.5 mb-4">
           <span className="block w-6 h-px" style={{ background: 'var(--accent)' }} />
-          <span
-            className="text-[10px] font-semibold tracking-[0.25em] uppercase"
-            style={{ color: 'var(--accent)' }}
-          >
+          <span className="text-[10px] font-semibold tracking-[0.25em] uppercase" style={{ color: 'var(--accent)' }}>
             Style Intelligence
           </span>
         </div>
 
-        {/* Title */}
         <h1 className="font-serif font-light leading-[1.1] mb-10 max-w-[640px] text-[#1a1714]"
             style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}>
           Find your complete look —{' '}
           <em style={{ color: 'var(--accent)' }}>instantly.</em>
         </h1>
 
-        {/* Joined search bar */}
         <form
           onSubmit={handleSubmit}
           className="flex w-full bg-white border border-black/[0.08] rounded-sm overflow-hidden
@@ -110,30 +226,11 @@ export default function Home() {
                        disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent)' }}
           >
-            {loading ? 'Searching…' : 'Search'}
+            {loading ? 'Working…' : 'Search'}
           </button>
         </form>
 
-        {/* Status strip */}
-        {loading && statuses.length > 0 && (
-          <div className="mt-6 space-y-2">
-            {statuses.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                <p className="text-sm text-[rgba(26,23,20,0.5)]">{s}</p>
-              </div>
-            ))}
-            <div className="flex items-center gap-1 pl-3.5 pt-1">
-              {[0, 1, 2].map(i => (
-                <span
-                  key={i}
-                  className="w-1 h-1 rounded-full bg-gray-400 inline-block"
-                  style={{ animation: `dotPulse 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {loading && <LoadingState statuses={statuses} />}
 
         {error && (
           <p className="mt-6 text-sm text-red-600 bg-white border border-red-200 rounded-sm px-4 py-3">
