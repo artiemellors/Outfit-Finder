@@ -1,0 +1,30 @@
+{
+  "name": "outfit-finder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:scraper": "npx tsx scripts/test-scraper.ts",
+    "postinstall": "playwright install firefox"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "next": "^15.5.12",
+    "playwright": "^1.49.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^20",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5"
+  }
+}
