@@ -85,6 +85,67 @@ function useRotatingCopy(phase: Phase) {
   return { copy, visible }
 }
 
+// ─── Typewriter placeholder ──────────────────────────────────────────────────
+
+const EXAMPLE_QUERIES = [
+  'night out for a stag party',
+  'smart casual for a job interview',
+  'casual summer outfit for a man',
+  'gym look for a woman',
+  'beach day with the kids',
+  'date night, a bit dressed up',
+  'cosy winter layers',
+  'weekend brunch, something relaxed',
+  'streetwear for a teen boy',
+  'workwear that doesn\'t feel boring',
+]
+
+function useTypewriterPlaceholder(paused: boolean) {
+  const [text, setText] = useState('')
+  const pausedRef = useRef(paused)
+  useEffect(() => { pausedRef.current = paused }, [paused])
+
+  useEffect(() => {
+    let cancelled = false
+    const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
+    async function run() {
+      await sleep(600) // initial delay before first char
+      const queries = shuffle([...EXAMPLE_QUERIES])
+      let qi = 0
+      while (!cancelled) {
+        if (pausedRef.current) { await sleep(200); continue }
+        const q = queries[qi++ % queries.length]
+        // type
+        for (let i = 1; i <= q.length; i++) {
+          if (cancelled || pausedRef.current) break
+          setText(q.slice(0, i))
+          await sleep(52)
+        }
+        if (cancelled) break
+        await sleep(2400) // hold
+        // delete (faster)
+        for (let i = q.length - 1; i >= 0; i--) {
+          if (cancelled || pausedRef.current) break
+          setText(q.slice(0, i))
+          await sleep(22)
+        }
+        if (cancelled) break
+        await sleep(380)
+        if (qi >= queries.length) {
+          // reshuffle before looping
+          queries.splice(0, queries.length, ...shuffle([...EXAMPLE_QUERIES]))
+          qi = 0
+        }
+      }
+    }
+    run()
+    return () => { cancelled = true; setText('') }
+  }, [])
+
+  return text
+}
+
 // ─── Loading state ───────────────────────────────────────────────────────────
 
 function LoadingState({ statuses }: { statuses: string[] }) {
@@ -179,6 +240,8 @@ export default function Home() {
   const [result, setResult]   = useState<Outfit[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
+  const [focused, setFocused] = useState(false)
+  const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -258,7 +321,9 @@ export default function Home() {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Describe the look you want…"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={focused ? 'Describe the look you want…' : (typewriter || 'Describe the look you want…')}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
                        text-sm font-light text-[#1a1714] placeholder:text-[rgba(26,23,20,0.3)]
