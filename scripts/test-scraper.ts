@@ -49,27 +49,41 @@ interface Product {
 }
 
 function mapProducts(candidates: Record<string, unknown>[]): Product[] {
-  return candidates.slice(0, 24).map((item, i) => ({
-    name: String(item.name ?? item.displayName ?? item.title ?? item.productName ?? `Product ${i + 1}`),
-    price: String(
-      (item.price as Record<string, unknown>)?.current ??
-      (item.price as Record<string, unknown>)?.min ??
-      (item.price as Record<string, unknown>)?.value ??
-      item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ?? 'Unknown'
-    ),
-    productUrl: item.url != null ? String(item.url)
+  return candidates.slice(0, 24).map((item, i) => {
+    const data = item.data as Record<string, unknown> | undefined
+    const rawUrl = data?.url != null ? String(data.url)
+      : item.url != null ? String(item.url)
       : item.productUrl != null ? String(item.productUrl)
       : item.pdpUrl != null ? String(item.pdpUrl)
-      : undefined,
-    imageUrl: item.primaryImage != null
-      ? String((item.primaryImage as Record<string, unknown>).url ?? item.primaryImage)
-      : Array.isArray(item.images) && (item.images as unknown[]).length > 0
-        ? String(((item.images as Record<string, unknown>[])[0]).url ?? (item.images as unknown[])[0])
-        : item.imageUrl != null ? String(item.imageUrl)
-        : item.image != null ? String(item.image)
-        : item.thumbnail != null ? String(item.thumbnail)
+      : undefined
+    return {
+      name: String(
+        item.value ??  // Constructor.io
+        item.name ?? item.displayName ?? item.title ?? item.productName ??
+        `Product ${i + 1}`
+      ),
+      price: String(
+        data?.price ??  // Constructor.io: numeric e.g. 15
+        (item.price as Record<string, unknown>)?.current ??
+        (item.price as Record<string, unknown>)?.min ??
+        (item.price as Record<string, unknown>)?.value ??
+        item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ??
+        'Unknown'
+      ),
+      productUrl: rawUrl != null
+        ? rawUrl.startsWith('http') ? rawUrl : `https://www.kmart.com.au${rawUrl}`
         : undefined,
-  }))
+      imageUrl: data?.image_url != null ? String(data.image_url)  // Constructor.io: full URL
+        : item.primaryImage != null
+          ? String((item.primaryImage as Record<string, unknown>).url ?? item.primaryImage)
+          : Array.isArray(item.images) && (item.images as unknown[]).length > 0
+            ? String(((item.images as Record<string, unknown>[])[0]).url ?? (item.images as unknown[])[0])
+            : item.imageUrl != null ? String(item.imageUrl)
+            : item.image != null ? String(item.image)
+            : item.thumbnail != null ? String(item.thumbnail)
+            : undefined,
+    }
+  })
 }
 
 async function extractFromNextData(page: Page): Promise<Product[]> {
@@ -224,14 +238,13 @@ async function searchKmart(query: string): Promise<Product[]> {
   // Collect ALL matching responses (homepage + search page may both fire).
   const capturedApiResponses: unknown[] = []
   page.on('response', async (response) => {
+    // Constructor.io is Kmart's search provider — only capture its search endpoint
+    if (!/ac\.cnstrc\.com\/search\//.test(response.url())) return
     if (!response.ok()) return
-    const ct = response.headers()['content-type'] ?? ''
-    if (!ct.includes('application/json')) return
     try {
-      const json = await response.json() as Record<string, unknown>
-      const url = response.url()
-      console.log(`[response] ${url.slice(0, 120)} — keys: ${Object.keys(json).slice(0, 8).join(', ')}`)
+      const json = await response.json()
       capturedApiResponses.push(json)
+      console.log(`[API intercept] Captured from: ${response.url().slice(0, 100)}`)
     } catch {
       // body already consumed or parse error — ignore
     }
@@ -274,16 +287,11 @@ async function searchKmart(query: string): Promise<Product[]> {
       for (const raw of capturedApiResponses) {
         try {
           const json = raw as Record<string, unknown>
-          // Debug: show top-level shape so we can tune the parser if needed
-          console.log('[API debug] Top-level keys:', Object.keys(json))
-          if (json.data && typeof json.data === 'object') {
-            console.log('[API debug] data keys:', Object.keys(json.data as object))
-          }
-
-          // Try every known Kmart GraphQL response shape, most specific first
           const data = json?.data as Record<string, unknown> | undefined
           const candidates: Record<string, unknown>[] = (
-            // Kmart search API shapes
+            // Constructor.io search response (Kmart's search provider)
+            (json?.response as Record<string, unknown>)?.results ??
+            // Generic GraphQL / REST fallbacks
             (data?.search as Record<string, unknown>)?.products ??
             (data?.search as Record<string, unknown>)?.results ??
             (data?.search as Record<string, unknown>)?.items ??
@@ -291,16 +299,9 @@ async function searchKmart(query: string): Promise<Product[]> {
             (data?.searchPage as Record<string, unknown>)?.products ??
             (data?.categoryOrSearch as Record<string, unknown>)?.products ??
             (data?.kmart as Record<string, unknown>)?.search ??
-            data?.products ??
-            data?.results ??
-            data?.items ??
-            // Top-level shapes (non-GraphQL REST responses)
-            json?.results ??
-            json?.products ??
-            json?.items ??
-            // ElasticSearch-style
-            (json?.hits as Record<string, unknown>)?.hits ??
-            json?.hits ??
+            data?.products ?? data?.results ?? data?.items ??
+            json?.results ?? json?.products ?? json?.items ??
+            (json?.hits as Record<string, unknown>)?.hits ?? json?.hits ??
             []
           ) as Record<string, unknown>[]
 
