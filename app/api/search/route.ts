@@ -3,9 +3,9 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createKmartSession, type KmartSession } from '@/lib/kmart-scraper'
 
 const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request, you:
-1. Identify the 2–3 most important clothing categories needed (tops, bottoms, footwear)
-2. Call search_kmart ONCE per category — maximum 3 searches total
-3. Call present_outfits with 2–3 named outfit pairings using the results you have
+1. Identify the clothing categories needed (tops, bottoms, footwear, accessories, etc.)
+2. Call search_kmart ONCE per category — maximum 5 searches total
+3. Call present_outfits with 2–4 named outfit pairings using the results you have
 
 Use specific queries ("men's black t-shirt" not "t-shirt"). If a search returns no results, skip that category and use what you have. Do not retry failed searches.`
 
