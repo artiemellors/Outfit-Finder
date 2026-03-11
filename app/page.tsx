@@ -88,7 +88,7 @@ export default function Home() {
         {/* Joined search bar */}
         <form
           onSubmit={handleSubmit}
-          className="flex max-w-[680px] bg-white border border-black/[0.08] rounded-sm overflow-hidden
+          className="flex w-full bg-white border border-black/[0.08] rounded-sm overflow-hidden
                      transition-all duration-200 focus-within:border-[#e0208e]
                      focus-within:shadow-[0_0_0_3px_rgba(224,32,142,0.1)]"
         >
