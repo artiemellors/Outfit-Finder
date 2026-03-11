@@ -166,21 +166,15 @@ export async function searchKmart(query: string): Promise<Product[]> {
   const page = await context.newPage()
 
   const capturedApiResponses: unknown[] = []
-  const KMART_API_PATTERNS = [
-    /api\.kmart\.com\.au/,
-    /\/api\/.*search/i,
-    /graphql/i,
-  ]
   page.on('response', async (response) => {
-    const url = response.url()
-    if (!KMART_API_PATTERNS.some((pat) => pat.test(url))) return
     if (!response.ok()) return
     const ct = response.headers()['content-type'] ?? ''
     if (!ct.includes('application/json')) return
     try {
-      const json = await response.json()
+      const json = await response.json() as Record<string, unknown>
+      const url = response.url()
+      console.log(`[response] ${url.slice(0, 120)} — keys: ${Object.keys(json).slice(0, 8).join(', ')}`)
       capturedApiResponses.push(json)
-      console.log(`[API intercept] Captured JSON from: ${url}`)
     } catch {
       // body already consumed or parse error — ignore
     }
