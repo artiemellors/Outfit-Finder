@@ -45,28 +45,66 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 32, fontFamily: 'sans-serif', maxWidth: 800 }}>
-      <h1>Outfit Finder</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="I want a casual men's black outfit"
-          style={{ flex: 1, padding: '8px 12px', fontSize: 16, border: '1px solid #ddd', borderRadius: 6 }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '8px 20px', fontSize: 16, cursor: loading ? 'not-allowed' : 'pointer' }}
-        >
-          {loading ? 'Searching…' : 'Search'}
-        </button>
-      </form>
-      {statuses.map((s, i) => (
-        <p key={i} style={{ color: '#666', margin: '4px 0' }}>→ {s}</p>
-      ))}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <div className="max-w-2xl mx-auto px-6 pt-16 pb-10">
+        <h1 className="text-5xl font-black tracking-tight text-[#111] mb-2">
+          Outfit Kurator
+        </h1>
+        <p className="text-lg text-gray-400 mb-10">
+          Find a complete look from Kmart, instantly.
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Describe your vibe…"
+            disabled={loading}
+            className="flex-1 px-4 py-3 text-base border-2 border-black rounded-lg
+                       outline-none focus:border-[#FF90E8] transition-colors
+                       disabled:opacity-50 placeholder:text-gray-300"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-3 bg-[#FF90E8] text-[#111] font-bold border-2 border-black rounded-lg
+                       hover:scale-[1.02] active:scale-[0.97] transition-transform
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+          >
+            {loading ? 'Searching…' : 'Search'}
+          </button>
+        </form>
+
+        {/* Status strip */}
+        {loading && statuses.length > 0 && (
+          <div className="mt-6 space-y-2">
+            {statuses.map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF90E8] shrink-0" />
+                <p className="text-sm text-gray-400">{s}</p>
+              </div>
+            ))}
+            <div className="flex items-center gap-1 pl-3.5 pt-1">
+              {[0, 1, 2].map(i => (
+                <span
+                  key={i}
+                  className="w-1 h-1 rounded-full bg-gray-300 inline-block"
+                  style={{ animation: `dotPulse 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <p className="mt-6 text-sm font-medium text-red-600 border-2 border-red-200 bg-red-50 rounded-lg px-4 py-3">
+            {error}
+          </p>
+        )}
+      </div>
+
       {result && <OutfitResults outfits={result} />}
-    </main>
+    </div>
   )
 }
