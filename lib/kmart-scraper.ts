@@ -179,20 +179,6 @@ export async function searchKmart(query: string): Promise<Product[]> {
 
   const page = await context.newPage()
 
-  const capturedApiResponses: unknown[] = []
-  page.on('response', async (response) => {
-    // Constructor.io is Kmart's search provider — only capture its search endpoint
-    if (!/ac\.cnstrc\.com\/search\//.test(response.url())) return
-    if (!response.ok()) return
-    try {
-      const json = await response.json()
-      capturedApiResponses.push(json)
-      console.log(`[API intercept] Captured from: ${response.url().slice(0, 100)}`)
-    } catch {
-      // body already consumed or parse error — ignore
-    }
-  })
-
   let products: Product[] = []
 
   try {
@@ -205,56 +191,43 @@ export async function searchKmart(query: string): Promise<Product[]> {
       console.log('[Browser] Homepage warm-up failed (non-fatal):', (err as Error).message)
     }
 
-    const url = SEARCH_BASE_URL + encodeURIComponent(query)
-    console.log(`\n[Browser] Navigating to: ${url}`)
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    // Set up constructor.io waiter BEFORE navigation to avoid missing a fast response
+    const constructorResponsePromise = page.waitForResponse(
+      (res) => /ac\.cnstrc\.com\/search\//.test(res.url()) && res.ok(),
+      { timeout: 15_000 },
+    ).catch(() => null)
 
-    console.log('[Browser] Waiting for page to render...')
-    await page.waitForTimeout(4000)
+    const searchUrl = SEARCH_BASE_URL + encodeURIComponent(query)
+    console.log(`\n[Browser] Navigating to: ${searchUrl}`)
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 
-    // Fast path 1: __NEXT_DATA__ DOM extraction (works if search page is SSR)
-    const nextDataProducts = await extractFromNextData(page)
-    if (nextDataProducts.length > 0) {
-      console.log('[__NEXT_DATA__] Success — skipping API interception and vision loop.')
-      return nextDataProducts
+    const pageTitle = await page.title()
+    if (pageTitle.toLowerCase().includes('access denied') || pageTitle.toLowerCase().includes('error')) {
+      console.log(`[Browser] Bot detection triggered: "${pageTitle}" — falling through to vision loop`)
     }
 
-    // Fast path 2: try extracting from intercepted API responses
-    if (capturedApiResponses.length > 0) {
-      console.log(`[API intercept] Attempting direct extraction from ${capturedApiResponses.length} captured response(s)...`)
-      for (const raw of capturedApiResponses) {
-        try {
-          const json = raw as Record<string, unknown>
-          const data = json?.data as Record<string, unknown> | undefined
-          const candidates: Record<string, unknown>[] = (
-            // Constructor.io search response (Kmart's search provider)
-            (json?.response as Record<string, unknown>)?.results ??
-            // Generic GraphQL / REST fallbacks
-            (data?.search as Record<string, unknown>)?.products ??
-            (data?.search as Record<string, unknown>)?.results ??
-            (data?.search as Record<string, unknown>)?.items ??
-            (data?.searchResults as Record<string, unknown>)?.products ??
-            (data?.searchPage as Record<string, unknown>)?.products ??
-            (data?.categoryOrSearch as Record<string, unknown>)?.products ??
-            (data?.kmart as Record<string, unknown>)?.search ??
-            data?.products ?? data?.results ?? data?.items ??
-            json?.results ?? json?.products ?? json?.items ??
-            (json?.hits as Record<string, unknown>)?.hits ?? json?.hits ??
-            []
-          ) as Record<string, unknown>[]
-
-          if (candidates.length > 0) {
-            products = mapProducts(candidates)
-            console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
-            return products
-          } else {
-            console.log('[API debug] No candidates found in this response — shape unrecognised.')
-          }
-        } catch (parseErr) {
-          console.log('[API intercept] Could not parse JSON shape:', (parseErr as Error).message)
+    // Fast path 1: Constructor.io API response (waits up to 15s from navigation start)
+    console.log('[Browser] Waiting for Constructor.io search response...')
+    const constructorResponse = await constructorResponsePromise
+    if (constructorResponse) {
+      console.log(`[API intercept] Captured from: ${constructorResponse.url().slice(0, 100)}`)
+      try {
+        const json = await constructorResponse.json() as Record<string, unknown>
+        const candidates = ((json?.response as Record<string, unknown>)?.results ?? []) as Record<string, unknown>[]
+        if (candidates.length > 0) {
+          products = mapProducts(candidates)
+          console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
+          return products
         }
+      } catch (e) {
+        console.log('[API intercept] Failed to parse response:', (e as Error).message)
       }
-      console.log('[API intercept] No usable products found across all captured responses.')
+    }
+
+    // Fast path 2: __NEXT_DATA__ DOM extraction (SSR fallback — currently empty for Kmart search)
+    const nextDataProducts = await extractFromNextData(page)
+    if (nextDataProducts.length > 0) {
+      return nextDataProducts
     }
 
     // Slow path: Claude computer-use vision loop
