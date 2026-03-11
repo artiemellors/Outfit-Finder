@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 export default function Home() {
   const [query, setQuery] = useState('')
+  const [statuses, setStatuses] = useState<string[]>([])
   const [result, setResult] = useState<unknown>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -12,19 +13,33 @@ export default function Home() {
     e.preventDefault()
     if (!query.trim()) return
     setLoading(true)
+    setStatuses([])
     setResult(null)
     setError(null)
-    try {
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      })
-      setResult(await res.json())
-    } catch (err) {
-      setError(String(err))
-    } finally {
-      setLoading(false)
+
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    })
+
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop()!
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const event = JSON.parse(line.slice(6)) as { type: string; message?: string; result?: unknown }
+        if (event.type === 'status') setStatuses(s => [...s, event.message!])
+        else if (event.type === 'done') { setResult(event.result); setLoading(false) }
+        else if (event.type === 'error') { setError(event.message!); setLoading(false) }
+      }
     }
   }
 
@@ -35,7 +50,7 @@ export default function Home() {
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="men's black t-shirt"
+          placeholder="I want a casual men's black outfit"
           style={{ flex: 1, padding: '8px 12px', fontSize: 16, border: '1px solid #ddd', borderRadius: 6 }}
         />
         <button
@@ -46,10 +61,12 @@ export default function Home() {
           {loading ? 'Searching…' : 'Search'}
         </button>
       </form>
-      {loading && <p style={{ color: '#666' }}>Running scraper — this takes ~45 seconds…</p>}
+      {statuses.map((s, i) => (
+        <p key={i} style={{ color: '#666', margin: '4px 0' }}>→ {s}</p>
+      ))}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
       {result && (
-        <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 6, overflow: 'auto', fontSize: 13 }}>
+        <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 6, overflow: 'auto', fontSize: 12, marginTop: 16 }}>
           {JSON.stringify(result, null, 2)}
         </pre>
       )}
