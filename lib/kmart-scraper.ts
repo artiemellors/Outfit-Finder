@@ -181,6 +181,8 @@ async function searchWithPage(query: string, page: Page, client: Anthropic): Pro
   ).catch(() => null)
 
   const searchUrl = SEARCH_BASE_URL + encodeURIComponent(query)
+  // Short random delay so consecutive searches don't look robotic
+  await page.waitForTimeout(800 + Math.floor(Math.random() * 700))
   console.log(`\n[Browser] Navigating to: ${searchUrl}`)
   await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 
@@ -348,10 +350,19 @@ export async function createKmartSession(): Promise<KmartSession> {
   })
   const page = await context.newPage()
 
+  // Patch automation indicators before any page load
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
+  })
+
   try {
     console.log('\n[Browser] Warming up via homepage...')
-    await page.goto('https://www.kmart.com.au', { waitUntil: 'domcontentloaded', timeout: 20_000 })
-    await page.waitForTimeout(2000)
+    await page.goto('https://www.kmart.com.au', { waitUntil: 'load', timeout: 20_000 })
+    // Simulate a real user reading the page briefly
+    await page.mouse.move(400, 300)
+    await page.mouse.move(640, 400)
+    await page.evaluate(() => window.scrollBy(0, 200))
+    await page.waitForTimeout(1500)
     console.log(`[Browser] Session ready: "${await page.title()}"`)
   } catch (err) {
     console.log('[Browser] Homepage warm-up failed (non-fatal):', (err as Error).message)
