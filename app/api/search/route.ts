@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { createKmartSession, type KmartSession } from '@/lib/kmart-scraper'
+import { searchKmart } from '@/lib/kmart-scraper'
 
 const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request, you:
 1. Identify the clothing categories needed (tops, bottoms, footwear, accessories, etc.)
@@ -18,13 +18,8 @@ export async function POST(req: NextRequest) {
       const send = (event: object) =>
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
 
-      let session: KmartSession | null = null
       try {
         const client = new Anthropic()
-
-        send({ type: 'status', message: 'Starting browser session…' })
-        session = await createKmartSession()
-        send({ type: 'status', message: 'Browser ready' })
 
         const tools: Anthropic.Tool[] = [
           {
@@ -106,7 +101,7 @@ export async function POST(req: NextRequest) {
               if (block.name === 'search_kmart') {
                 const q = (block.input as { query: string }).query
                 send({ type: 'status', message: `Searching for "${q}"…` })
-                const products = await session!.search(q)
+                const products = await searchKmart(q)
                 if (products.length > 0) {
                   send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
                   toolResults.push({
@@ -134,7 +129,6 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         send({ type: 'error', message: String(err) })
       } finally {
-        await session?.close()
         controller.close()
       }
     },
