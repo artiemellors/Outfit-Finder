@@ -19,14 +19,14 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
         item.name ?? item.displayName ?? item.title ?? item.productName ??
         `Product ${i + 1}`
       ),
-      price: String(
-        data?.price ??
-        (item.price as Record<string, unknown>)?.current ??
-        (item.price as Record<string, unknown>)?.min ??
-        (item.price as Record<string, unknown>)?.value ??
-        item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ??
-        'Unknown'
-      ),
+      price: (() => {
+        const raw = data?.price ??
+          (item.price as Record<string, unknown>)?.current ??
+          (item.price as Record<string, unknown>)?.min ??
+          (item.price as Record<string, unknown>)?.value ??
+          item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ?? 'Unknown'
+        return typeof raw === 'number' ? `$${raw.toFixed(2)}` : String(raw)
+      })(),
       productUrl: rawUrl != null
         ? rawUrl.startsWith('http') ? rawUrl : `https://www.kmart.com.au${rawUrl}`
         : undefined,

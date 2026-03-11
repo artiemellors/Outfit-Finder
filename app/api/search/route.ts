@@ -2,12 +2,11 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { searchKmart } from '@/lib/kmart-scraper'
 
-const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request, you:
-1. Identify the clothing categories needed (tops, bottoms, footwear, accessories, etc.)
-2. Call search_kmart ONCE per category — maximum 5 searches total
-3. Call present_outfits with 2–4 named outfit pairings using the results you have
+const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
+1. Call search_kmart for each clothing category needed — max 5 calls, one per category
+2. After completing your searches, call present_outfits — do NOT describe outfits in text
 
-Use specific queries ("men's black t-shirt" not "t-shirt"). If a search returns no results, skip that category and use what you have. Do not retry failed searches.`
+When calling present_outfits, provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot drawn from your search results. You MUST call present_outfits even if some searches returned no results — use what you have.`
 
 export async function POST(req: NextRequest) {
   const { query } = await req.json() as { query: string }
