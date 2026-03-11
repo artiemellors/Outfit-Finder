@@ -292,7 +292,7 @@ async function searchKmart(query: string): Promise<Product[]> {
     }
 
     // Tool definitions
-    const tools: Anthropic.Beta.BetaTool[] = [
+    const tools: (Anthropic.Beta.BetaTool | Anthropic.Beta.BetaToolComputerUse20251124)[] = [
       {
         type: 'computer_20251124',
         name: 'computer',
