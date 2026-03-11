@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
             max_tokens: 8192,
             system: SYSTEM_PROMPT,
             tools,
+            tool_choice: { type: 'any' },
             messages,
           })
           console.log(`[Claude] Turn ${turn} — stop_reason: ${response.stop_reason}, blocks: ${response.content.length}`)
