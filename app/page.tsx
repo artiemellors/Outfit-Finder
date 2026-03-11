@@ -1,41 +1,88 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import OutfitResults, { type Outfit } from './components/OutfitResults'
 
 // ─── Editorial rotating copy ────────────────────────────────────────────────
 
 const PHASE_COPY = {
-  thinking:  ['Reading your brief…', 'Studying your aesthetic…', 'Understanding the look…'],
-  searching: ['Hunting down the best fits…', 'Browsing the racks…', 'Sourcing the pieces…', 'Checking every aisle…'],
-  curating:  ['Pulling the look together…', 'Almost dressed…', 'Finishing touches…', 'Nearly ready to wear…'],
+  thinking: [
+    'Reading your brief…',
+    'Decoding your aesthetic…',
+    'Working out what you need…',
+    'Getting the picture…',
+    'Thinking through the options…',
+  ],
+  searching: [
+    'Hunting down the best fits…',
+    'Browsing the racks…',
+    'Sourcing the pieces…',
+    'Checking every aisle…',
+    'Comparing the options…',
+    'Filtering out the noise…',
+    'On the lookout for something good…',
+    'Checking what\'s in stock…',
+    'Sifting through the shelves…',
+    'Scanning the collection…',
+    'Finding the right pieces…',
+    'Looking for a good match…',
+  ],
+  curating: [
+    'Pulling the look together…',
+    'Almost dressed…',
+    'Finishing touches…',
+    'Nearly ready to wear…',
+    'Making sure it all works…',
+    'Pairing things up…',
+    'Getting the details right…',
+    'Putting the final look together…',
+  ],
 }
 
 type Phase = keyof typeof PHASE_COPY
 
+function shuffle(arr: string[]): string[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
 function useRotatingCopy(phase: Phase) {
-  const [idx, setIdx] = useState(0)
+  const [copy, setCopy] = useState(() => PHASE_COPY[phase][0])
   const [visible, setVisible] = useState(true)
+  // Shuffle queue — walk through all phrases before repeating
+  const queueRef = useRef<string[]>([])
+  const idxRef   = useRef(1)
 
   useEffect(() => {
-    setIdx(0)
+    const phrases = PHASE_COPY[phase]
+    queueRef.current = shuffle(phrases)
+    idxRef.current = 1
+    setCopy(queueRef.current[0])
     setVisible(true)
   }, [phase])
 
   useEffect(() => {
-    const lines = PHASE_COPY[phase]
-    if (lines.length <= 1) return
+    const phrases = PHASE_COPY[phase]
+    if (phrases.length <= 1) return
     const id = setInterval(() => {
       setVisible(false)
       setTimeout(() => {
-        setIdx(i => (i + 1) % lines.length)
+        if (idxRef.current >= queueRef.current.length) {
+          queueRef.current = shuffle(phrases)
+          idxRef.current = 0
+        }
+        setCopy(queueRef.current[idxRef.current++])
         setVisible(true)
       }, 350)
-    }, 2500)
+    }, 3200)
     return () => clearInterval(id)
   }, [phase])
 
-  return { copy: PHASE_COPY[phase][idx], visible }
+  return { copy, visible }
 }
 
 // ─── Loading state ───────────────────────────────────────────────────────────
