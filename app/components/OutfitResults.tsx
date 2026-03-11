@@ -65,7 +65,7 @@ function ItemSlotControlled({
             src={product.imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
-            style={{ animation: 'imgFadeIn 180ms ease-out' }}
+            style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out' }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
