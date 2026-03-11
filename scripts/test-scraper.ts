@@ -106,15 +106,16 @@ async function extractFromNextData(page: Page): Promise<Product[]> {
   }
   console.log('[__NEXT_DATA__] pageProps keys:', Object.keys(pageProps))
 
+  type AnyObj = Record<string, unknown>
   const candidates = (
-    (pageProps?.initialData as Record<string, unknown>)?.search?.products ??
-    (pageProps?.searchResults as Record<string, unknown>)?.products ??
-    (pageProps?.data as Record<string, unknown>)?.search?.products ??
-    (pageProps?.initialState as Record<string, unknown>)?.search?.products ??
-    (pageProps?.searchData as Record<string, unknown>)?.products ??
+    ((pageProps?.initialData as AnyObj)?.search as AnyObj)?.products ??
+    (pageProps?.searchResults as AnyObj)?.products ??
+    ((pageProps?.data as AnyObj)?.search as AnyObj)?.products ??
+    ((pageProps?.initialState as AnyObj)?.search as AnyObj)?.products ??
+    (pageProps?.searchData as AnyObj)?.products ??
     pageProps?.products ??
     []
-  ) as Record<string, unknown>[]
+  ) as AnyObj[]
 
   if (!candidates.length) {
     console.log('[__NEXT_DATA__] No products found in known paths. Logging pageProps structure:')
