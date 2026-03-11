@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import OutfitResults, { type Outfit } from './components/OutfitResults'
 
 export default function Home() {
   const [query, setQuery] = useState('')
   const [statuses, setStatuses] = useState<string[]>([])
-  const [result, setResult] = useState<unknown>(null)
+  const [result, setResult] = useState<Outfit[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,7 +38,7 @@ export default function Home() {
         if (!line.startsWith('data: ')) continue
         const event = JSON.parse(line.slice(6)) as { type: string; message?: string; result?: unknown }
         if (event.type === 'status') setStatuses(s => [...s, event.message!])
-        else if (event.type === 'done') { setResult(event.result); setLoading(false) }
+        else if (event.type === 'done') { setResult(event.result as Outfit[]); setLoading(false) }
         else if (event.type === 'error') { setError(event.message!); setLoading(false) }
       }
     }
@@ -65,11 +66,7 @@ export default function Home() {
         <p key={i} style={{ color: '#666', margin: '4px 0' }}>→ {s}</p>
       ))}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-      {result && (
-        <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 6, overflow: 'auto', fontSize: 12, marginTop: 16 }}>
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      )}
+      {result && <OutfitResults outfits={result} />}
     </main>
   )
 }
