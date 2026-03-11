@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { searchKmart } from '@/lib/kmart-scraper'
+import { searchKmart, Product } from '@/lib/kmart-scraper'
 
 const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
 1. In your FIRST response, call search_kmart for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls.
 2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
 
-When calling present_outfits, provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
+Each product in search results has an "id" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
 
 export async function POST(req: NextRequest) {
   const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         const tools: Anthropic.Tool[] = [
           {
             name: 'search_kmart',
-            description: "Search Kmart Australia for products. Returns up to 6 products with name, price, imageUrl, productUrl.",
+            description: "Search Kmart Australia for products. Returns up to 6 products, each with an id, name, and price.",
             input_schema: {
               type: 'object' as const,
               properties: { query: { type: 'string', description: "Search query, e.g. \"men's black t-shirt\"" } },
@@ -56,15 +56,8 @@ export async function POST(req: NextRequest) {
                             description: { type: 'string' },
                             alternatives: {
                               type: 'array',
-                              items: {
-                                type: 'object',
-                                properties: {
-                                  name: { type: 'string' },
-                                  price: { type: 'string' },
-                                  productUrl: { type: 'string' },
-                                  imageUrl: { type: 'string' },
-                                },
-                              },
+                              description: 'Product ids from search results',
+                              items: { type: 'string' },
                             },
                           },
                         },
@@ -78,8 +71,10 @@ export async function POST(req: NextRequest) {
           },
         ]
 
+        const productMap = new Map<string, Product>()
         const messages: Anthropic.MessageParam[] = [{ role: 'user', content: query }]
         let turn = 0
+        let searchIndex = 0
 
         while (true) {
           turn++
@@ -108,8 +103,26 @@ export async function POST(req: NextRequest) {
 
             const presentBlock = toolBlocks.find(b => b.name === 'present_outfits')
             if (presentBlock) {
-              const outfits = (presentBlock.input as { outfits: unknown[] }).outfits
-              console.log(`[Claude] present_outfits called — ${Array.isArray(outfits) ? outfits.length : '?'} outfits`)
+              const rawOutfits = (presentBlock.input as {
+                outfits: Array<{
+                  name: string
+                  description: string
+                  items: Array<{ category: string; description: string; alternatives: string[] }>
+                }>
+              }).outfits
+              console.log(`[Claude] present_outfits called — ${Array.isArray(rawOutfits) ? rawOutfits.length : '?'} outfits`)
+
+              // Resolve product IDs back to full product objects
+              const outfits = rawOutfits.map(outfit => ({
+                ...outfit,
+                items: outfit.items.map(item => ({
+                  ...item,
+                  alternatives: item.alternatives
+                    .map(id => productMap.get(id))
+                    .filter((p): p is Product => p !== undefined),
+                })),
+              }))
+
               send({ type: 'done', result: outfits })
               controller.close()
               return
@@ -129,18 +142,27 @@ export async function POST(req: NextRequest) {
 
             const toolResults: Anthropic.ToolResultBlockParam[] = searchBlocks.map((b, i) => {
               const q = (b.input as { query: string }).query
-              const products = results[i]
+              const products = results[i].slice(0, 6)
+              const si = searchIndex++
               console.log(`[Search] "${q}" → ${products.length} products`)
               if (products.length > 0) {
                 send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
               } else {
                 send({ type: 'status', message: `No results for "${q}" — skipping` })
               }
+
+              // Tag each product with a short ID and store in map; only send id/name/price to Claude
+              const tagged = products.map((p, pi) => {
+                const id = `q${si}p${pi}`
+                productMap.set(id, p)
+                return { id, name: p.name, price: p.price }
+              })
+
               return {
                 type: 'tool_result' as const,
                 tool_use_id: b.id,
-                content: products.length > 0
-                  ? JSON.stringify(products.slice(0, 6))
+                content: tagged.length > 0
+                  ? JSON.stringify(tagged)
                   : 'No results found. Skip this category and proceed with what you have.',
               }
             })
