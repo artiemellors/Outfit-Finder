@@ -45,13 +45,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
+    // Gumroad's warm cream background
+    <div className="min-h-screen bg-[#F2EFEA]">
       <div className="max-w-2xl mx-auto px-6 pt-16 pb-10">
         <h1 className="text-5xl font-black tracking-tight text-[#111] mb-2">
           Outfit Kurator
         </h1>
-        <p className="text-lg text-gray-400 mb-10">
+        <p className="text-base text-gray-400 mb-10">
           Find a complete look from Kmart, instantly.
         </p>
 
@@ -61,14 +61,14 @@ export default function Home() {
             onChange={e => setQuery(e.target.value)}
             placeholder="Describe your vibe…"
             disabled={loading}
-            className="flex-1 px-4 py-3 text-base border-2 border-black rounded-lg
+            className="flex-1 px-4 py-3 text-sm bg-white border-2 border-black rounded
                        outline-none focus:border-[#FF90E8] transition-colors
                        disabled:opacity-50 placeholder:text-gray-300"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-[#FF90E8] text-[#111] font-bold border-2 border-black rounded-lg
+            className="px-6 py-3 bg-[#FF90E8] text-[#111] text-sm font-bold border-2 border-black rounded
                        hover:scale-[1.02] active:scale-[0.97] transition-transform
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
           >
@@ -89,7 +89,7 @@ export default function Home() {
               {[0, 1, 2].map(i => (
                 <span
                   key={i}
-                  className="w-1 h-1 rounded-full bg-gray-300 inline-block"
+                  className="w-1 h-1 rounded-full bg-gray-400 inline-block"
                   style={{ animation: `dotPulse 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }}
                 />
               ))}
@@ -98,7 +98,7 @@ export default function Home() {
         )}
 
         {error && (
-          <p className="mt-6 text-sm font-medium text-red-600 border-2 border-red-200 bg-red-50 rounded-lg px-4 py-3">
+          <p className="mt-6 text-sm font-medium text-red-600 bg-white border border-red-300 rounded px-4 py-3">
             {error}
           </p>
         )}
