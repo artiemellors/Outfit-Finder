@@ -45,35 +45,70 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2EFEA]">
-      {/* Sticky top-left logo header */}
-      <header className="sticky top-0 z-20 bg-[#F2EFEA] border-b border-black/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center">
-          <span className="text-xl font-black tracking-tight text-[#111]">Outfit Kurator</span>
+    <div className="min-h-screen bg-[#f5f2ee]">
+      {/* Sticky header */}
+      <header
+        className="sticky top-0 z-20 bg-[#f5f2ee] border-b border-black/[0.08]"
+        style={{ animation: 'fadeDown 0.6s ease both' }}
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between">
+          {/* Serif logo: "Outfit" regular + "Kurator" italic accent */}
+          <span className="font-serif text-[22px] font-normal tracking-[0.08em] text-[#1a1714]">
+            Outfit <em style={{ color: 'var(--accent)' }}>Kurator</em>
+          </span>
+          <span className="hidden sm:block text-[11px] font-medium tracking-[0.15em] uppercase text-[rgba(26,23,20,0.5)]">
+            Powered by Kmart
+          </span>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-10 pb-10">
-        <p className="text-sm text-gray-400 mb-6">
-          Find a complete look from Kmart, instantly.
-        </p>
+      {/* Hero */}
+      <section
+        className="max-w-4xl mx-auto px-4 sm:px-8 pt-14 pb-10"
+        style={{ animation: 'fadeUp 0.7s 0.1s ease both' }}
+      >
+        {/* Eyebrow */}
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="block w-6 h-px" style={{ background: 'var(--accent)' }} />
+          <span
+            className="text-[10px] font-semibold tracking-[0.25em] uppercase"
+            style={{ color: 'var(--accent)' }}
+          >
+            Style Intelligence
+          </span>
+        </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-3">
+        {/* Title */}
+        <h1 className="font-serif font-light leading-[1.1] mb-10 max-w-[640px] text-[#1a1714]"
+            style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}>
+          Find your complete look —{' '}
+          <em style={{ color: 'var(--accent)' }}>instantly.</em>
+        </h1>
+
+        {/* Joined search bar */}
+        <form
+          onSubmit={handleSubmit}
+          className="flex max-w-[680px] bg-white border border-black/[0.08] rounded-sm overflow-hidden
+                     transition-all duration-200 focus-within:border-[#e0208e]
+                     focus-within:shadow-[0_0_0_3px_rgba(224,32,142,0.1)]"
+        >
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Describe your vibe…"
+            placeholder="Describe the look you want…"
             disabled={loading}
-            className="flex-1 min-w-0 px-4 py-3 text-sm bg-white border-2 border-black rounded
-                       outline-none focus:border-[#FF90E8] transition-colors
-                       disabled:opacity-50 placeholder:text-gray-300"
+            className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
+                       text-sm font-light text-[#1a1714] placeholder:text-[rgba(26,23,20,0.3)]
+                       disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={loading}
-            className="shrink-0 px-6 py-3 bg-[#FF90E8] text-[#111] text-sm font-bold border-2 border-black rounded
-                       hover:scale-[1.02] active:scale-[0.97] transition-transform
-                       disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+            className="shrink-0 px-8 py-[18px] text-[11px] font-semibold tracking-[0.18em] uppercase
+                       text-white border-none cursor-pointer transition-all
+                       hover:brightness-90 active:scale-[0.98]
+                       disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'var(--accent)' }}
           >
             {loading ? 'Searching…' : 'Search'}
           </button>
@@ -84,8 +119,8 @@ export default function Home() {
           <div className="mt-6 space-y-2">
             {statuses.map((s, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FF90E8] shrink-0" />
-                <p className="text-sm text-gray-400">{s}</p>
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
+                <p className="text-sm text-[rgba(26,23,20,0.5)]">{s}</p>
               </div>
             ))}
             <div className="flex items-center gap-1 pl-3.5 pt-1">
@@ -101,11 +136,11 @@ export default function Home() {
         )}
 
         {error && (
-          <p className="mt-6 text-sm font-medium text-red-600 bg-white border border-red-300 rounded px-4 py-3">
+          <p className="mt-6 text-sm text-red-600 bg-white border border-red-200 rounded-sm px-4 py-3">
             {error}
           </p>
         )}
-      </div>
+      </section>
 
       {result && <OutfitResults outfits={result} />}
     </div>

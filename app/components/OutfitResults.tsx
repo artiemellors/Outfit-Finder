@@ -25,119 +25,103 @@ function parsePrice(price: string): number {
   return parseFloat(price.replace(/[^0-9.]/g, '')) || 0
 }
 
-// Gumroad's signature price tag: pink with a rightward arrow notch cut into the right edge
-function PriceTag({ children, large }: { children: React.ReactNode; large?: boolean }) {
-  const sizeClasses = large
-    ? 'text-lg font-bold px-4 py-1.5 pr-6'
-    : 'text-xs font-bold px-2.5 py-0.5 pr-4'
-  const notch = large
-    ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
-    : 'polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%)'
-  return (
-    <span
-      className={`inline-flex items-center bg-[#FF90E8] text-[#111] ${sizeClasses}`}
-      style={{ clipPath: notch }}
-    >
-      {children}
-    </span>
-  )
-}
-
-function ItemSlotControlled({
+function ItemCard({
   item,
   idx,
   onIdxChange,
+  animDelay,
 }: {
   item: OutfitItem
   idx: number
   onIdxChange: (idx: number) => void
+  animDelay: number
 }) {
   const product = item.alternatives[idx]
   const count = item.alternatives.length
 
   return (
-    <div className="flex gap-4 py-4 border-t border-black/[0.08]">
-      {/* Image — key remount triggers imgFadeIn crossfade */}
-      <div className="shrink-0 w-20 h-24 border border-black rounded overflow-hidden bg-gray-50">
-        {product.imageUrl ? (
-          <img
-            key={idx}
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out' }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
-            No image
-          </div>
-        )}
-      </div>
-
-      {/* Details */}
-      <div className="flex-1 min-w-0">
-        {/* Category + per-item price tag */}
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="text-[10px] font-bold tracking-[0.18em] text-gray-400 uppercase">
-            {item.category}
-          </span>
-          <PriceTag>{product.price}</PriceTag>
+    <div
+      className="bg-white border border-black/[0.08] p-5 sm:p-6"
+      style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
+    >
+      <div className="flex gap-4 sm:gap-6">
+        {/* Image */}
+        <div className="w-20 h-20 sm:w-[100px] sm:h-[100px] shrink-0 bg-[#f0ece6] rounded-sm overflow-hidden">
+          {product.imageUrl ? (
+            <img
+              key={idx}
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out' }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[10px] text-[rgba(26,23,20,0.3)]">
+              No image
+            </div>
+          )}
         </div>
 
-        <p className="text-sm font-semibold text-[#111] leading-snug mb-1 line-clamp-2">
-          {product.name}
-        </p>
-        <p className="text-xs text-gray-400 leading-snug mb-3 line-clamp-1">
-          {item.description}
-        </p>
-
-        {/* Controls */}
-        <div className="flex items-center justify-between">
-          {/* Prev / counter / next */}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => onIdxChange((idx - 1 + count) % count)}
-              className="w-9 h-9 rounded border-2 border-black flex items-center justify-center
-                         text-[#111] text-xl font-bold leading-none
-                         hover:bg-[#111] hover:text-white
-                         active:scale-90 transition-all duration-100"
-              aria-label="Previous option"
-            >
-              ‹
-            </button>
-            <span className="text-xs text-gray-400 tabular-nums w-8 text-center">
-              {idx + 1}/{count}
-            </span>
-            <button
-              onClick={() => onIdxChange((idx + 1) % count)}
-              className="w-9 h-9 rounded border-2 border-black flex items-center justify-center
-                         text-[#111] text-xl font-bold leading-none
-                         hover:bg-[#111] hover:text-white
-                         active:scale-90 transition-all duration-100"
-              aria-label="Next option"
-            >
-              ›
-            </button>
+        {/* Content: meta + price/link (stacks on mobile, row on desktop) */}
+        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6">
+          {/* Meta */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] font-semibold tracking-[0.22em] uppercase mb-2"
+               style={{ color: 'var(--accent)' }}>
+              {item.category}
+            </p>
+            <h3 className="font-serif text-lg sm:text-xl font-normal leading-tight mb-1.5 text-[#1a1714]">
+              {product.name}
+            </h3>
+            <p className="text-xs leading-relaxed text-[rgba(26,23,20,0.5)] font-light line-clamp-2">
+              {item.description}
+            </p>
+            {/* Nav */}
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => onIdxChange((idx - 1 + count) % count)}
+                className="w-7 h-7 border border-black/[0.08] rounded-sm flex items-center justify-center
+                           text-sm text-[rgba(26,23,20,0.5)] hover:border-black/30 hover:text-[#1a1714]
+                           transition-all"
+                aria-label="Previous option"
+              >‹</button>
+              <span className="text-[11px] text-[rgba(26,23,20,0.3)] tabular-nums">
+                {idx + 1} / {count}
+              </span>
+              <button
+                onClick={() => onIdxChange((idx + 1) % count)}
+                className="w-7 h-7 border border-black/[0.08] rounded-sm flex items-center justify-center
+                           text-sm text-[rgba(26,23,20,0.5)] hover:border-black/30 hover:text-[#1a1714]
+                           transition-all"
+                aria-label="Next option"
+              >›</button>
+            </div>
           </div>
 
-          {/* Slide-underline link */}
-          <a
-            href={product.productUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative text-xs font-semibold text-[#111] group flex items-center gap-0.5"
-          >
-            View at Kmart
-            <span className="text-[10px] ml-0.5">↗</span>
-            <span className="absolute -bottom-0.5 left-0 h-[1.5px] w-0 bg-[#111] group-hover:w-full transition-all duration-200" />
-          </a>
+          {/* Price + link — row on mobile (below meta), column on desktop (right side) */}
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between
+                          mt-3 sm:mt-0 sm:gap-4 shrink-0">
+            <span className="font-serif text-2xl font-semibold text-[#1a1714] leading-none">
+              {product.price}
+            </span>
+            <a
+              href={product.productUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-semibold tracking-[0.15em] uppercase flex items-center gap-1
+                         text-[rgba(26,23,20,0.3)] border-b border-transparent pb-0.5
+                         hover:text-[#e0208e] hover:border-[#e0208e] transition-all"
+            >
+              View at Kmart <span className="text-[8px]">↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function OutfitCard({ outfit }: { outfit: Outfit }) {
+function OutfitView({ outfit }: { outfit: Outfit }) {
   const [indices, setIndices] = useState<number[]>(() => outfit.items.map(() => 0))
   const [priceFlashing, setPriceFlashing] = useState(false)
 
@@ -157,36 +141,74 @@ function OutfitCard({ outfit }: { outfit: Outfit }) {
   }, [total])
 
   return (
-    // White card on cream page — Gumroad's core contrast pattern
-    <div
-      className="bg-white border border-black rounded overflow-hidden"
-      style={{ animation: 'slideIn 250ms ease-out both' }}
-    >
-      {/* White header — outfit name + total price tag */}
-      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-base font-bold text-[#111] leading-snug">{outfit.name}</h2>
-          <p className="text-xs text-gray-400 mt-1 leading-snug">{outfit.description}</p>
+    <div className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
+      {/* Outfit summary card */}
+      <div className="bg-white border border-black/[0.08] rounded-sm p-7 lg:sticky lg:top-[152px]">
+        <p className="text-[9px] font-semibold tracking-[0.25em] uppercase text-[rgba(26,23,20,0.3)] mb-3">
+          Selected Look
+        </p>
+        {/* Accent line */}
+        <div className="w-10 h-0.5 mb-7" style={{ background: 'var(--accent)' }} />
+
+        <h2 className="font-serif text-[26px] font-normal leading-snug text-[#1a1714] mb-3">
+          {outfit.name}
+        </h2>
+        <p className="text-sm leading-relaxed text-[rgba(26,23,20,0.5)] font-light mb-7">
+          {outfit.description}
+        </p>
+
+        {/* Total */}
+        <div className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
+          <div>
+            <p className="text-[10px] tracking-[0.18em] uppercase text-[rgba(26,23,20,0.3)] mb-1">
+              Complete outfit
+            </p>
+            <div
+              className="font-serif text-[38px] font-semibold leading-none"
+              style={{
+                color: 'var(--accent)',
+                animation: priceFlashing ? 'priceBounce 400ms ease-out' : undefined,
+              }}
+            >
+              ${total.toFixed(2)}
+            </div>
+          </div>
+          <div className="text-xs text-[rgba(26,23,20,0.5)]">
+            {outfit.items.length} pieces
+          </div>
         </div>
-        {/* Total price bounces when it changes */}
-        <div
-          className="shrink-0 mt-0.5"
-          style={priceFlashing ? { animation: 'priceBounce 400ms ease-out' } : {}}
+
+        <button
+          className="w-full border py-3.5 text-[11px] font-semibold tracking-[0.18em] uppercase
+                     rounded-sm transition-all duration-200 hover:text-white"
+          style={{
+            borderColor: 'var(--accent)',
+            color: 'var(--accent)',
+          }}
+          onMouseEnter={e => {
+            const el = e.currentTarget
+            el.style.background = 'var(--accent)'
+            el.style.color = 'white'
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget
+            el.style.background = ''
+            el.style.color = 'var(--accent)'
+          }}
         >
-          <PriceTag large>${total.toFixed(2)}</PriceTag>
-        </div>
+          Shop All Pieces →
+        </button>
       </div>
 
-      {/* Items */}
-      <div className="px-5 pb-1">
+      {/* Items list */}
+      <div className="flex flex-col gap-0.5">
         {outfit.items.map((item, i) => (
-          <ItemSlotControlled
+          <ItemCard
             key={item.category}
             item={item}
             idx={indices[i]}
-            onIdxChange={newIdx =>
-              setIndices(prev => prev.map((v, j) => (j === i ? newIdx : v)))
-            }
+            onIdxChange={newIdx => setIndices(prev => prev.map((v, j) => j === i ? newIdx : v))}
+            animDelay={i * 60}
           />
         ))}
       </div>
@@ -199,19 +221,23 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
-      {/* Sticky pill nav on cream — offset below the site header */}
-      <div className="sticky top-14 z-10 bg-[#F2EFEA] -mx-4 sm:-mx-8 px-4 sm:px-8 py-3 mb-5">
-        <div className="flex gap-2 overflow-x-auto">
+      {/* Sticky tab bar */}
+      <div className="sticky top-14 z-10 bg-[#f5f2ee] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
+        <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,23,20,0.3)] mb-3">
+          Style direction
+        </p>
+        <div className="flex gap-2 flex-wrap">
           {outfits.map((outfit, i) => (
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full border border-black text-xs font-semibold
-                          whitespace-nowrap transition-all duration-150 active:scale-95
+              className={`px-5 py-2.5 rounded-sm border text-[11px] font-semibold tracking-[0.08em]
+                          uppercase transition-all duration-200 active:scale-95 whitespace-nowrap
                           ${i === activeIdx
-                            ? 'bg-[#111] text-white'
-                            : 'bg-white text-[#111] hover:bg-gray-50'
+                            ? 'text-white border-transparent'
+                            : 'bg-transparent text-[rgba(26,23,20,0.5)] border-black/[0.08] hover:text-[#1a1714]'
                           }`}
+              style={i === activeIdx ? { background: 'var(--accent)', borderColor: 'var(--accent)' } : {}}
             >
               {outfit.name}
             </button>
@@ -219,8 +245,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
         </div>
       </div>
 
-      {/* key remount resets indices + triggers slideIn */}
-      <OutfitCard key={activeIdx} outfit={outfits[activeIdx]} />
+      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} />
     </div>
   )
 }
