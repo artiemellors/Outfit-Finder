@@ -298,7 +298,7 @@ async function searchKmart(query: string): Promise<Product[]> {
         name: 'computer',
         display_width_px: VIEWPORT.width,
         display_height_px: VIEWPORT.height,
-      } as Anthropic.Beta.BetaComputerUseTool_20251124,
+      } as Anthropic.Beta.BetaToolComputerUse20251124,
       {
         name: 'extract_products',
         description:
