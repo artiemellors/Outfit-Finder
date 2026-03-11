@@ -87,44 +87,69 @@ function useRotatingCopy(phase: Phase) {
 
 // ─── Typewriter placeholder ──────────────────────────────────────────────────
 
-const EXAMPLE_QUERIES = [
-  'night out for a stag party',
-  'smart casual for a job interview',
-  'casual summer outfit for a man',
-  'gym look for a woman',
-  'beach day with the kids',
-  'date night, a bit dressed up',
-  'cosy winter layers',
-  'weekend brunch, something relaxed',
-  'streetwear for a teen boy',
-  'workwear that doesn\'t feel boring',
-]
+type Gender = 'men' | 'women' | null
 
-function useTypewriterPlaceholder(paused: boolean) {
+const EXAMPLE_QUERIES: Record<NonNullable<Gender> | 'all', string[]> = {
+  men: [
+    'night out for a stag party',
+    'smart casual for a job interview',
+    'casual summer outfit for a man',
+    'gym look for a guy',
+    'beach day with the kids',
+    'streetwear for a teen boy',
+    'workwear that doesn\'t feel boring',
+    'weekend brunch, something relaxed',
+  ],
+  women: [
+    'smart casual for a job interview',
+    'gym look for a woman',
+    'beach day with the kids',
+    'date night, a bit dressed up',
+    'cosy winter layers',
+    'weekend brunch, something relaxed',
+    'workwear that doesn\'t feel boring',
+    'summer dress for a garden party',
+  ],
+  all: [
+    'night out for a stag party',
+    'smart casual for a job interview',
+    'casual summer outfit for a man',
+    'gym look for a woman',
+    'beach day with the kids',
+    'date night, a bit dressed up',
+    'cosy winter layers',
+    'weekend brunch, something relaxed',
+    'streetwear for a teen boy',
+    'workwear that doesn\'t feel boring',
+  ],
+}
+
+function useTypewriterPlaceholder(paused: boolean, gender: Gender) {
   const [text, setText] = useState('')
   const pausedRef = useRef(paused)
+  const genderRef = useRef(gender)
   useEffect(() => { pausedRef.current = paused }, [paused])
+  useEffect(() => { genderRef.current = gender }, [gender])
 
   useEffect(() => {
     let cancelled = false
     const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
     async function run() {
-      await sleep(600) // initial delay before first char
-      const queries = shuffle([...EXAMPLE_QUERIES])
+      await sleep(600)
+      const pool = () => EXAMPLE_QUERIES[genderRef.current ?? 'all']
+      const queries = shuffle([...pool()])
       let qi = 0
       while (!cancelled) {
         if (pausedRef.current) { await sleep(200); continue }
         const q = queries[qi++ % queries.length]
-        // type
         for (let i = 1; i <= q.length; i++) {
           if (cancelled || pausedRef.current) break
           setText(q.slice(0, i))
           await sleep(52)
         }
         if (cancelled) break
-        await sleep(2400) // hold
-        // delete (faster)
+        await sleep(2400)
         for (let i = q.length - 1; i >= 0; i--) {
           if (cancelled || pausedRef.current) break
           setText(q.slice(0, i))
@@ -133,8 +158,7 @@ function useTypewriterPlaceholder(paused: boolean) {
         if (cancelled) break
         await sleep(380)
         if (qi >= queries.length) {
-          // reshuffle before looping
-          queries.splice(0, queries.length, ...shuffle([...EXAMPLE_QUERIES]))
+          queries.splice(0, queries.length, ...shuffle([...pool()]))
           qi = 0
         }
       }
@@ -241,7 +265,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
-  const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0)
+  const [gender, setGender]   = useState<Gender>(null)
+  const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0, gender)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -254,7 +279,7 @@ export default function Home() {
     const res = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, gender }),
     })
 
     const reader  = res.body!.getReader()
@@ -341,6 +366,26 @@ export default function Home() {
             {loading ? 'Working…' : 'Search'}
           </button>
         </form>
+
+        {/* Gender toggle */}
+        <div className="flex gap-2 mt-3">
+          {(['men', 'women'] as const).map(g => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGender(prev => prev === g ? null : g)}
+              disabled={loading}
+              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-sm
+                         border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={gender === g
+                ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(224,32,142,0.06)' }
+                : { borderColor: 'rgba(26,23,20,0.12)', color: 'rgba(26,23,20,0.45)', background: 'transparent' }
+              }
+            >
+              {g === 'men' ? 'Men' : 'Women'}
+            </button>
+          ))}
+        </div>
 
         {loading && <LoadingState statuses={statuses} />}
 

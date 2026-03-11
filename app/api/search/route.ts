@@ -2,14 +2,18 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { searchKmart } from '@/lib/kmart-scraper'
 
-const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
+const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
 1. In your FIRST response, call search_kmart for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls.
 2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
 
 When calling present_outfits, provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
 
 export async function POST(req: NextRequest) {
-  const { query } = await req.json() as { query: string }
+  const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
+
+  const SYSTEM_PROMPT = gender
+    ? `${BASE_PROMPT}\n\nIMPORTANT: The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — every search query and all outfit suggestions must be for ${gender}'s clothing only. Prefix all search_kmart queries with "${gender === 'men' ? "men's" : "women's"}" unless the user has already specified it.`
+    : BASE_PROMPT
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
