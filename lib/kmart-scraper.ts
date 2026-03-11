@@ -1,12 +1,25 @@
 export interface Product {
   name: string
   price: string
+  colour?: string
   productUrl?: string
   imageUrl?: string
 }
 
 function mapProducts(candidates: Record<string, unknown>[]): Product[] {
-  return candidates.slice(0, 24).map((item, i) => {
+  // Deduplicate by (name, colour) — collapses size variants into one per colour
+  const seen = new Set<string>()
+  const deduplicated = candidates.filter(item => {
+    const data = item.data as Record<string, unknown> | undefined
+    const name = String(item.value ?? item.name ?? '')
+    const colour = data?.Colour != null ? String(data.Colour) : ''
+    const key = `${name}::${colour}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
+  return deduplicated.slice(0, 24).map((item, i) => {
     const data = item.data as Record<string, unknown> | undefined
     const rawUrl = data?.url != null ? String(data.url)
       : item.url != null ? String(item.url)
@@ -27,6 +40,7 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
           item.priceLabel ?? item.salePrice ?? item.regularPrice ?? item.price ?? 'Unknown'
         return typeof raw === 'number' ? `$${raw.toFixed(2)}` : String(raw)
       })(),
+      colour: data?.Colour != null ? String(data.Colour) : undefined,
       productUrl: rawUrl != null
         ? rawUrl.startsWith('http') ? rawUrl : `https://www.kmart.com.au${rawUrl}`
         : undefined,

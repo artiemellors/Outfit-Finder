@@ -6,7 +6,7 @@ const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user
 1. In your FIRST response, call search_kmart for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls.
 2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
 
-Each product in search results has an "id" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
+Each product in search results has an "id", "name", "price", and "colour" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. Use the colour field to build cohesive outfits — prefer combinations where colours complement each other (e.g. neutrals together, or a statement colour paired with neutrals). You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
 
 export async function POST(req: NextRequest) {
   const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         const tools: Anthropic.Tool[] = [
           {
             name: 'search_kmart',
-            description: "Search Kmart Australia for products. Returns up to 6 products, each with an id, name, and price.",
+            description: "Search Kmart Australia for products. Returns up to 6 products, each with an id, name, price, and colour.",
             input_schema: {
               type: 'object' as const,
               properties: { query: { type: 'string', description: "Search query, e.g. \"men's black t-shirt\"" } },
@@ -151,11 +151,11 @@ export async function POST(req: NextRequest) {
                 send({ type: 'status', message: `No results for "${q}" — skipping` })
               }
 
-              // Tag each product with a short ID and store in map; only send id/name/price to Claude
+              // Tag each product with a short ID and store in map; send id/name/price/colour to Claude
               const tagged = products.map((p, pi) => {
                 const id = `q${si}p${pi}`
                 productMap.set(id, p)
-                return { id, name: p.name, price: p.price }
+                return { id, name: p.name, price: p.price, ...(p.colour ? { colour: p.colour } : {}) }
               })
 
               return {
