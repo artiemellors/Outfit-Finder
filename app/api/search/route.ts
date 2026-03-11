@@ -75,8 +75,11 @@ export async function POST(req: NextRequest) {
         ]
 
         const messages: Anthropic.MessageParam[] = [{ role: 'user', content: query }]
+        let turn = 0
 
         while (true) {
+          turn++
+          console.log(`\n[Claude] Turn ${turn} — calling API…`)
           const response = await client.messages.create({
             model: 'claude-sonnet-4-6',
             max_tokens: 8192,
@@ -84,6 +87,7 @@ export async function POST(req: NextRequest) {
             tools,
             messages,
           })
+          console.log(`[Claude] Turn ${turn} — stop_reason: ${response.stop_reason}, blocks: ${response.content.length}`)
 
           messages.push({ role: 'assistant', content: response.content })
 
@@ -99,23 +103,29 @@ export async function POST(req: NextRequest) {
 
             const presentBlock = toolBlocks.find(b => b.name === 'present_outfits')
             if (presentBlock) {
-              send({ type: 'done', result: (presentBlock.input as { outfits: unknown }).outfits })
+              const outfits = (presentBlock.input as { outfits: unknown[] }).outfits
+              console.log(`[Claude] present_outfits called — ${Array.isArray(outfits) ? outfits.length : '?'} outfits`)
+              send({ type: 'done', result: outfits })
               controller.close()
               return
             }
 
             const searchBlocks = toolBlocks.filter(b => b.name === 'search_kmart')
+            console.log(`[Claude] Searching ${searchBlocks.length} categories in parallel: ${searchBlocks.map(b => `"${(b.input as { query: string }).query}"`).join(', ')}`)
             searchBlocks.forEach(b =>
               send({ type: 'status', message: `Searching for "${(b.input as { query: string }).query}"…` })
             )
 
+            const t0 = Date.now()
             const results = await Promise.all(
               searchBlocks.map(b => searchKmart((b.input as { query: string }).query))
             )
+            console.log(`[Search] All ${searchBlocks.length} searches done in ${Date.now() - t0}ms`)
 
             const toolResults: Anthropic.ToolResultBlockParam[] = searchBlocks.map((b, i) => {
               const q = (b.input as { query: string }).query
               const products = results[i]
+              console.log(`[Search] "${q}" → ${products.length} products`)
               if (products.length > 0) {
                 send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
               } else {
