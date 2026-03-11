@@ -4,4 +4,5 @@ node_modules/
 dist/
 .next/
 *.log
+tsconfig.tsbuildinfo
 /tmp/kmart-*.png
