@@ -20,6 +20,11 @@ export interface Product {
   imageUrl?: string
 }
 
+export interface KmartSession {
+  search: (query: string) => Promise<Product[]>
+  close: () => Promise<void>
+}
+
 function mapProducts(candidates: Record<string, unknown>[]): Product[] {
   return candidates.slice(0, 24).map((item, i) => {
     const data = item.data as Record<string, unknown> | undefined
@@ -166,7 +171,172 @@ async function executeComputerAction(page: Page, input: ComputerInput): Promise<
   }
 }
 
-export async function searchKmart(query: string): Promise<Product[]> {
+// Internal: search using an existing page (no browser create/destroy).
+// Called by both the session-based API route and the standalone searchKmart wrapper.
+async function searchWithPage(query: string, page: Page, client: Anthropic): Promise<Product[]> {
+  // Set up constructor.io waiter BEFORE navigation to avoid missing a fast response
+  const constructorResponsePromise = page.waitForResponse(
+    (res) => /ac\.cnstrc\.com\/search\//.test(res.url()) && res.ok(),
+    { timeout: 15_000 },
+  ).catch(() => null)
+
+  const searchUrl = SEARCH_BASE_URL + encodeURIComponent(query)
+  console.log(`\n[Browser] Navigating to: ${searchUrl}`)
+  await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+
+  // Early exit on Access Denied — don't wait 15s for a response that won't come
+  const pageTitle = await page.title()
+  if (pageTitle.toLowerCase().includes('access denied')) {
+    console.log(`[Browser] Bot detection: "${pageTitle}" — aborting search early`)
+    return []
+  }
+
+  // Fast path 1: Constructor.io API response (waits up to 15s from navigation start)
+  console.log('[Browser] Waiting for Constructor.io search response...')
+  const constructorResponse = await constructorResponsePromise
+  if (constructorResponse) {
+    console.log(`[API intercept] Captured from: ${constructorResponse.url().slice(0, 100)}`)
+    try {
+      const json = await constructorResponse.json() as Record<string, unknown>
+      const candidates = ((json?.response as Record<string, unknown>)?.results ?? []) as Record<string, unknown>[]
+      if (candidates.length > 0) {
+        const products = mapProducts(candidates)
+        console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
+        return products
+      }
+    } catch (e) {
+      console.log('[API intercept] Failed to parse response:', (e as Error).message)
+    }
+  }
+
+  // Fast path 2: __NEXT_DATA__ DOM extraction (SSR fallback — currently empty for Kmart search)
+  const nextDataProducts = await extractFromNextData(page)
+  if (nextDataProducts.length > 0) {
+    return nextDataProducts
+  }
+
+  // Slow path: Claude computer-use vision loop
+  const tools: Anthropic.Beta.BetaTool[] = [
+    {
+      type: 'computer_20251124',
+      name: 'computer',
+      display_width_px: VIEWPORT.width,
+      display_height_px: VIEWPORT.height,
+    } as Anthropic.Beta.BetaComputerUseTool_20251124,
+    {
+      name: 'extract_products',
+      description:
+        'Call this when you can see product listings on the Kmart search results page. ' +
+        'Extract all products that are clearly visible — name, price, and product URL if you can read it.',
+      input_schema: {
+        type: 'object' as const,
+        properties: {
+          products: {
+            type: 'array',
+            description: 'Products visible on screen',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Full product name as shown on screen' },
+                price: { type: 'string', description: 'Price as displayed, e.g. "$15.00"' },
+                productUrl: { type: 'string', description: 'Product page URL if readable (optional)' },
+                imageUrl: { type: 'string', description: 'Product image URL if readable from page source (optional)' },
+              },
+              required: ['name', 'price'],
+            },
+          },
+        },
+        required: ['products'],
+      },
+    },
+  ]
+
+  const messages: Anthropic.Beta.BetaMessageParam[] = [
+    {
+      role: 'user',
+      content:
+        `The browser is open on the Kmart Australia search results page for: "${query}". ` +
+        `Take a screenshot to see what is on screen. ` +
+        `If a cookie/consent popup appears, close it first. ` +
+        `If you can see product listings, extract as many as possible — aim for at least 12 products. ` +
+        `If fewer than 12 are visible, scroll down to reveal more, then call extract_products once with everything you found. ` +
+        `If the page hasn't loaded yet, wait a moment and take another screenshot.`,
+    },
+  ]
+
+  let products: Product[] = []
+  let done = false
+
+  for (let i = 0; i < MAX_ITERATIONS && !done; i++) {
+    console.log(`\n[Iteration ${i + 1}/${MAX_ITERATIONS}] Calling ${MODEL}...`)
+
+    const response = await client.beta.messages.create({
+      model: MODEL,
+      max_tokens: 4096,
+      system:
+        'You are a web navigation assistant. A browser is open and controlled by Playwright. ' +
+        'Your only goal is to extract product data from the Kmart Australia search results page. ' +
+        'Be efficient: take a screenshot, identify products, call extract_products. ' +
+        'If you see an Access Denied or error page, report it clearly in text and stop. ' +
+        'Do not navigate away from the search results page.',
+      tools,
+      messages,
+      betas: ['computer-use-2025-11-24'],
+    })
+
+    console.log(`[Claude] stop_reason: ${response.stop_reason}`)
+
+    for (const block of response.content) {
+      if (block.type === 'text' && block.text.trim()) {
+        console.log(`[Claude says] ${block.text.slice(0, 300)}`)
+      }
+    }
+
+    messages.push({ role: 'assistant', content: response.content })
+
+    if (response.stop_reason === 'end_turn') {
+      console.log('[Done] Claude finished without calling extract_products.')
+      break
+    }
+
+    const toolResults: Anthropic.Beta.BetaToolResultBlockParam[] = []
+
+    for (const block of response.content) {
+      if (block.type !== 'tool_use') continue
+
+      console.log(`[Tool call] ${block.name}: ${JSON.stringify(block.input).slice(0, 150)}`)
+
+      if (block.name === 'computer') {
+        const result = await executeComputerAction(page, block.input as ComputerInput)
+        toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: [result] })
+      } else if (block.name === 'extract_products') {
+        const input = block.input as { products: Product[] }
+        products = input.products ?? []
+        console.log(`\n✓ extract_products called — ${products.length} products captured`)
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          content: [{ type: 'text', text: 'Products captured successfully. Task complete.' }],
+        })
+        done = true
+      }
+    }
+
+    if (toolResults.length > 0) {
+      messages.push({ role: 'user', content: toolResults })
+    }
+  }
+
+  if (!done) {
+    console.log(`\n⚠️  Reached ${MAX_ITERATIONS} iterations without extract_products being called.`)
+  }
+
+  return products
+}
+
+// Create a shared browser session — one browser launch + homepage warmup for multiple searches.
+// Use this in the API route to avoid per-search rate limiting from Akamai.
+export async function createKmartSession(): Promise<KmartSession> {
   const client = new Anthropic()
 
   const browser = await firefox.launch({ headless: true })
@@ -176,178 +346,30 @@ export async function searchKmart(query: string): Promise<Product[]> {
     timezoneId: 'Australia/Sydney',
     extraHTTPHeaders: { 'Accept-Language': 'en-AU,en;q=0.9' },
   })
-
   const page = await context.newPage()
-
-  let products: Product[] = []
 
   try {
     console.log('\n[Browser] Warming up via homepage...')
-    try {
-      await page.goto('https://www.kmart.com.au', { waitUntil: 'domcontentloaded', timeout: 20_000 })
-      await page.waitForTimeout(2000)
-      console.log(`[Browser] Homepage loaded: "${await page.title()}"`)
-    } catch (err) {
-      console.log('[Browser] Homepage warm-up failed (non-fatal):', (err as Error).message)
-    }
-
-    // Set up constructor.io waiter BEFORE navigation to avoid missing a fast response
-    const constructorResponsePromise = page.waitForResponse(
-      (res) => /ac\.cnstrc\.com\/search\//.test(res.url()) && res.ok(),
-      { timeout: 15_000 },
-    ).catch(() => null)
-
-    const searchUrl = SEARCH_BASE_URL + encodeURIComponent(query)
-    console.log(`\n[Browser] Navigating to: ${searchUrl}`)
-    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
-
-    const pageTitle = await page.title()
-    if (pageTitle.toLowerCase().includes('access denied') || pageTitle.toLowerCase().includes('error')) {
-      console.log(`[Browser] Bot detection triggered: "${pageTitle}" — falling through to vision loop`)
-    }
-
-    // Fast path 1: Constructor.io API response (waits up to 15s from navigation start)
-    console.log('[Browser] Waiting for Constructor.io search response...')
-    const constructorResponse = await constructorResponsePromise
-    if (constructorResponse) {
-      console.log(`[API intercept] Captured from: ${constructorResponse.url().slice(0, 100)}`)
-      try {
-        const json = await constructorResponse.json() as Record<string, unknown>
-        const candidates = ((json?.response as Record<string, unknown>)?.results ?? []) as Record<string, unknown>[]
-        if (candidates.length > 0) {
-          products = mapProducts(candidates)
-          console.log(`[API intercept] Extracted ${products.length} products — skipping vision loop.`)
-          return products
-        }
-      } catch (e) {
-        console.log('[API intercept] Failed to parse response:', (e as Error).message)
-      }
-    }
-
-    // Fast path 2: __NEXT_DATA__ DOM extraction (SSR fallback — currently empty for Kmart search)
-    const nextDataProducts = await extractFromNextData(page)
-    if (nextDataProducts.length > 0) {
-      return nextDataProducts
-    }
-
-    // Slow path: Claude computer-use vision loop
-    const tools: Anthropic.Beta.BetaTool[] = [
-      {
-        type: 'computer_20251124',
-        name: 'computer',
-        display_width_px: VIEWPORT.width,
-        display_height_px: VIEWPORT.height,
-      } as Anthropic.Beta.BetaComputerUseTool_20251124,
-      {
-        name: 'extract_products',
-        description:
-          'Call this when you can see product listings on the Kmart search results page. ' +
-          'Extract all products that are clearly visible — name, price, and product URL if you can read it.',
-        input_schema: {
-          type: 'object' as const,
-          properties: {
-            products: {
-              type: 'array',
-              description: 'Products visible on screen',
-              items: {
-                type: 'object',
-                properties: {
-                  name: { type: 'string', description: 'Full product name as shown on screen' },
-                  price: { type: 'string', description: 'Price as displayed, e.g. "$15.00"' },
-                  productUrl: { type: 'string', description: 'Product page URL if readable (optional)' },
-                  imageUrl: { type: 'string', description: 'Product image URL if readable from page source (optional)' },
-                },
-                required: ['name', 'price'],
-              },
-            },
-          },
-          required: ['products'],
-        },
-      },
-    ]
-
-    const messages: Anthropic.Beta.BetaMessageParam[] = [
-      {
-        role: 'user',
-        content:
-          `The browser is open on the Kmart Australia search results page for: "${query}". ` +
-          `Take a screenshot to see what is on screen. ` +
-          `If a cookie/consent popup appears, close it first. ` +
-          `If you can see product listings, extract as many as possible — aim for at least 12 products. ` +
-          `If fewer than 12 are visible, scroll down to reveal more, then call extract_products once with everything you found. ` +
-          `If the page hasn't loaded yet, wait a moment and take another screenshot.`,
-      },
-    ]
-
-    let done = false
-
-    for (let i = 0; i < MAX_ITERATIONS && !done; i++) {
-      console.log(`\n[Iteration ${i + 1}/${MAX_ITERATIONS}] Calling ${MODEL}...`)
-
-      const response = await client.beta.messages.create({
-        model: MODEL,
-        max_tokens: 4096,
-        system:
-          'You are a web navigation assistant. A browser is open and controlled by Playwright. ' +
-          'Your only goal is to extract product data from the Kmart Australia search results page. ' +
-          'Be efficient: take a screenshot, identify products, call extract_products. ' +
-          'If you see an Access Denied or error page, report it clearly in text and stop. ' +
-          'Do not navigate away from the search results page.',
-        tools,
-        messages,
-        betas: ['computer-use-2025-11-24'],
-      })
-
-      console.log(`[Claude] stop_reason: ${response.stop_reason}`)
-
-      for (const block of response.content) {
-        if (block.type === 'text' && block.text.trim()) {
-          console.log(`[Claude says] ${block.text.slice(0, 300)}`)
-        }
-      }
-
-      messages.push({ role: 'assistant', content: response.content })
-
-      if (response.stop_reason === 'end_turn') {
-        console.log('[Done] Claude finished without calling extract_products.')
-        break
-      }
-
-      const toolResults: Anthropic.Beta.BetaToolResultBlockParam[] = []
-
-      for (const block of response.content) {
-        if (block.type !== 'tool_use') continue
-
-        console.log(`[Tool call] ${block.name}: ${JSON.stringify(block.input).slice(0, 150)}`)
-
-        if (block.name === 'computer') {
-          const result = await executeComputerAction(page, block.input as ComputerInput)
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: [result] })
-        } else if (block.name === 'extract_products') {
-          const input = block.input as { products: Product[] }
-          products = input.products ?? []
-          console.log(`\n✓ extract_products called — ${products.length} products captured`)
-          toolResults.push({
-            type: 'tool_result',
-            tool_use_id: block.id,
-            content: [{ type: 'text', text: 'Products captured successfully. Task complete.' }],
-          })
-          done = true
-        }
-      }
-
-      if (toolResults.length > 0) {
-        messages.push({ role: 'user', content: toolResults })
-      }
-    }
-
-    if (!done) {
-      console.log(`\n⚠️  Reached ${MAX_ITERATIONS} iterations without extract_products being called.`)
-    }
-  } finally {
-    await browser.close()
-    console.log('\n[Browser] Closed.')
+    await page.goto('https://www.kmart.com.au', { waitUntil: 'domcontentloaded', timeout: 20_000 })
+    await page.waitForTimeout(2000)
+    console.log(`[Browser] Session ready: "${await page.title()}"`)
+  } catch (err) {
+    console.log('[Browser] Homepage warm-up failed (non-fatal):', (err as Error).message)
   }
 
-  return products
+  return {
+    search: (query: string) => searchWithPage(query, page, client),
+    close: () => browser.close(),
+  }
+}
+
+// Standalone wrapper — creates its own session for single-search use (test script, etc.)
+export async function searchKmart(query: string): Promise<Product[]> {
+  const session = await createKmartSession()
+  try {
+    return await session.search(query)
+  } finally {
+    await session.close()
+    console.log('\n[Browser] Closed.')
+  }
 }

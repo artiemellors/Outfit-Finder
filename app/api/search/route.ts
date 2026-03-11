@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { searchKmart } from '@/lib/kmart-scraper'
+import { createKmartSession, type KmartSession } from '@/lib/kmart-scraper'
 
 const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request, you:
-1. Identify the clothing categories needed (tops, bottoms, footwear, etc.)
-2. Call search_kmart for each category with focused, specific queries
-3. Call present_outfits with 2–4 named outfit pairings
+1. Identify the 2–3 most important clothing categories needed (tops, bottoms, footwear)
+2. Call search_kmart ONCE per category — maximum 3 searches total
+3. Call present_outfits with 2–3 named outfit pairings using the results you have
 
-Search tips: use specific queries ("men's black t-shirt" not "t-shirt"). Kmart sells basics, activewear, and casualwear. Search one category at a time. Each present_outfits item slot should include 3–5 alternative products drawn from your search results.`
+Use specific queries ("men's black t-shirt" not "t-shirt"). If a search returns no results, skip that category and use what you have. Do not retry failed searches.`
 
 export async function POST(req: NextRequest) {
   const { query } = await req.json() as { query: string }
@@ -18,8 +18,14 @@ export async function POST(req: NextRequest) {
       const send = (event: object) =>
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
 
+      let session: KmartSession | null = null
       try {
         const client = new Anthropic()
+
+        send({ type: 'status', message: 'Starting browser session…' })
+        session = await createKmartSession()
+        send({ type: 'status', message: 'Browser ready' })
+
         const tools: Anthropic.Tool[] = [
           {
             name: 'search_kmart',
@@ -100,13 +106,22 @@ export async function POST(req: NextRequest) {
               if (block.name === 'search_kmart') {
                 const q = (block.input as { query: string }).query
                 send({ type: 'status', message: `Searching for "${q}"…` })
-                const products = await searchKmart(q)
-                send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
-                toolResults.push({
-                  type: 'tool_result',
-                  tool_use_id: block.id,
-                  content: JSON.stringify(products.slice(0, 6)),
-                })
+                const products = await session!.search(q)
+                if (products.length > 0) {
+                  send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
+                  toolResults.push({
+                    type: 'tool_result',
+                    tool_use_id: block.id,
+                    content: JSON.stringify(products.slice(0, 6)),
+                  })
+                } else {
+                  send({ type: 'status', message: `No results for "${q}" — skipping` })
+                  toolResults.push({
+                    type: 'tool_result',
+                    tool_use_id: block.id,
+                    content: 'No results found. Skip this category and proceed with what you have.',
+                  })
+                }
               } else if (block.name === 'present_outfits') {
                 send({ type: 'done', result: (block.input as { outfits: unknown }).outfits })
                 controller.close()
@@ -119,6 +134,7 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         send({ type: 'error', message: String(err) })
       } finally {
+        await session?.close()
         controller.close()
       }
     },

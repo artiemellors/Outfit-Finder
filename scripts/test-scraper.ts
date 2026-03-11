@@ -259,9 +259,11 @@ async function searchKmart(query: string): Promise<Product[]> {
     console.log(`\n[Browser] Navigating to: ${searchUrl}`)
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 
+    // Early exit on Access Denied — don't wait 15s for a response that won't come
     const pageTitle = await page.title()
-    if (pageTitle.toLowerCase().includes('access denied') || pageTitle.toLowerCase().includes('error')) {
-      console.log(`[Browser] Bot detection triggered: "${pageTitle}" — falling through to vision loop`)
+    if (pageTitle.toLowerCase().includes('access denied')) {
+      console.log(`[Browser] Bot detection: "${pageTitle}" — aborting search early`)
+      return []
     }
 
     // Fast path 1: Constructor.io API response (waits up to 15s from navigation start)
