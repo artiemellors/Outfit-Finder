@@ -3,10 +3,10 @@ import Anthropic from '@anthropic-ai/sdk'
 import { searchKmart } from '@/lib/kmart-scraper'
 
 const SYSTEM_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
-1. Call search_kmart for each clothing category needed — max 5 calls, one per category
-2. After completing your searches, call present_outfits — do NOT describe outfits in text
+1. In your FIRST response, call search_kmart for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls.
+2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
 
-When calling present_outfits, provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot drawn from your search results. You MUST call present_outfits even if some searches returned no results — use what you have.`
+When calling present_outfits, provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. You MUST call present_outfits even if some searches returned no results.`
 
 export async function POST(req: NextRequest) {
   const { query } = await req.json() as { query: string }
@@ -93,35 +93,42 @@ export async function POST(req: NextRequest) {
           }
 
           if (response.stop_reason === 'tool_use') {
-            const toolResults: Anthropic.ToolResultBlockParam[] = []
-            for (const block of response.content) {
-              if (block.type !== 'tool_use') continue
+            const toolBlocks = response.content.filter(
+              (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
+            )
 
-              if (block.name === 'search_kmart') {
-                const q = (block.input as { query: string }).query
-                send({ type: 'status', message: `Searching for "${q}"…` })
-                const products = await searchKmart(q)
-                if (products.length > 0) {
-                  send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
-                  toolResults.push({
-                    type: 'tool_result',
-                    tool_use_id: block.id,
-                    content: JSON.stringify(products.slice(0, 6)),
-                  })
-                } else {
-                  send({ type: 'status', message: `No results for "${q}" — skipping` })
-                  toolResults.push({
-                    type: 'tool_result',
-                    tool_use_id: block.id,
-                    content: 'No results found. Skip this category and proceed with what you have.',
-                  })
-                }
-              } else if (block.name === 'present_outfits') {
-                send({ type: 'done', result: (block.input as { outfits: unknown }).outfits })
-                controller.close()
-                return
-              }
+            const presentBlock = toolBlocks.find(b => b.name === 'present_outfits')
+            if (presentBlock) {
+              send({ type: 'done', result: (presentBlock.input as { outfits: unknown }).outfits })
+              controller.close()
+              return
             }
+
+            const searchBlocks = toolBlocks.filter(b => b.name === 'search_kmart')
+            searchBlocks.forEach(b =>
+              send({ type: 'status', message: `Searching for "${(b.input as { query: string }).query}"…` })
+            )
+
+            const results = await Promise.all(
+              searchBlocks.map(b => searchKmart((b.input as { query: string }).query))
+            )
+
+            const toolResults: Anthropic.ToolResultBlockParam[] = searchBlocks.map((b, i) => {
+              const q = (b.input as { query: string }).query
+              const products = results[i]
+              if (products.length > 0) {
+                send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
+              } else {
+                send({ type: 'status', message: `No results for "${q}" — skipping` })
+              }
+              return {
+                type: 'tool_result' as const,
+                tool_use_id: b.id,
+                content: products.length > 0
+                  ? JSON.stringify(products.slice(0, 6))
+                  : 'No results found. Skip this category and proceed with what you have.',
+              }
+            })
             messages.push({ role: 'user', content: toolResults })
           }
         }
