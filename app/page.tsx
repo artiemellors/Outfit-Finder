@@ -45,13 +45,16 @@ export default function Home() {
   }
 
   return (
-    // Gumroad's warm cream background
     <div className="min-h-screen bg-[#F2EFEA]">
-      <div className="max-w-2xl mx-auto px-6 pt-16 pb-10">
-        <h1 className="text-5xl font-black tracking-tight text-[#111] mb-2">
-          Outfit Kurator
-        </h1>
-        <p className="text-base text-gray-400 mb-10">
+      {/* Sticky top-left logo header */}
+      <header className="sticky top-0 z-20 bg-[#F2EFEA] border-b border-black/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center">
+          <span className="text-xl font-black tracking-tight text-[#111]">Outfit Kurator</span>
+        </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-10 pb-10">
+        <p className="text-sm text-gray-400 mb-6">
           Find a complete look from Kmart, instantly.
         </p>
 
@@ -61,14 +64,14 @@ export default function Home() {
             onChange={e => setQuery(e.target.value)}
             placeholder="Describe your vibe…"
             disabled={loading}
-            className="flex-1 px-4 py-3 text-sm bg-white border-2 border-black rounded
+            className="flex-1 min-w-0 px-4 py-3 text-sm bg-white border-2 border-black rounded
                        outline-none focus:border-[#FF90E8] transition-colors
                        disabled:opacity-50 placeholder:text-gray-300"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-[#FF90E8] text-[#111] text-sm font-bold border-2 border-black rounded
+            className="shrink-0 px-6 py-3 bg-[#FF90E8] text-[#111] text-sm font-bold border-2 border-black rounded
                        hover:scale-[1.02] active:scale-[0.97] transition-transform
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
           >

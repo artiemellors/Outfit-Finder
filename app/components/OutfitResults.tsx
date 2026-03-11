@@ -198,9 +198,9 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
   return (
-    <div className="max-w-2xl mx-auto px-6 pb-16">
-      {/* Sticky pill nav on cream — matches Gumroad's category row */}
-      <div className="sticky top-0 z-10 bg-[#F2EFEA] -mx-6 px-6 py-3 mb-5">
+    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
+      {/* Sticky pill nav on cream — offset below the site header */}
+      <div className="sticky top-14 z-10 bg-[#F2EFEA] -mx-4 sm:-mx-8 px-4 sm:px-8 py-3 mb-5">
         <div className="flex gap-2 overflow-x-auto">
           {outfits.map((outfit, i) => (
             <button
