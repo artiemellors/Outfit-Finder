@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 export interface Product {
   name: string
   price: string
+  colour?: string
   productUrl: string
   imageUrl: string
 }
@@ -70,9 +71,12 @@ function ItemCard({
                style={{ color: 'var(--accent)' }}>
               {item.category}
             </p>
-            <h3 className="font-serif text-lg sm:text-xl font-normal leading-tight mb-1.5 text-[#1a1714]">
+            <h3 className="font-serif text-lg sm:text-xl font-normal leading-tight mb-1 text-[#1a1714]">
               {product.name}
             </h3>
+            {product.colour && (
+              <p className="text-[11px] text-[rgba(26,23,20,0.4)] mb-1.5">{product.colour}</p>
+            )}
             <p className="text-xs leading-relaxed text-[rgba(26,23,20,0.5)] font-light line-clamp-2">
               {item.description}
             </p>
