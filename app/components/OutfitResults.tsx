@@ -59,7 +59,7 @@ function ItemCard({
     >
       <div className="flex gap-4 sm:gap-6">
         {/* Image — 4:5 portrait ratio */}
-        <div className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded overflow-hidden">
+        <div className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded-2xl overflow-hidden">
           {product.imageUrl ? (
             <img
               key={idx}
@@ -83,7 +83,7 @@ function ItemCard({
                style={{ color: 'var(--accent)' }}>
               {item.category}
             </p>
-            <h3 className="font-sans text-sm font-semibold leading-tight mb-1 text-[#333]">
+            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[#333]">
               {product.name}
             </h3>
             {product.colour && (

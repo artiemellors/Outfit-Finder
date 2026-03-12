@@ -83,7 +83,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               href={p.productUrl ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border border-black/[0.08] rounded overflow-hidden block hover:border-black/20 transition-colors"
+              className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
             >
               {p.imageUrl ? (
                 <img
@@ -95,10 +95,13 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 <div className="aspect-[4/5] w-full bg-[--surface2]" />
               )}
               <div className="p-3">
-                <p className="text-[13px] font-semibold leading-tight line-clamp-2 text-[--text] mb-1">
+                <p className="text-[14px] font-medium leading-tight line-clamp-2 text-[--text] mb-1">
                   {p.name}
                 </p>
-                <p className="text-sm font-bold text-[--text] mb-1">{p.price}</p>
+                <p className="text-xl font-bold text-[--text] leading-none mb-1">
+                  <sup className="text-xs font-bold align-super">$</sup>
+                  {p.price.startsWith('$') ? p.price.slice(1) : p.price}
+                </p>
                 <p className="text-[11px] font-semibold text-[--accent]">View at Kmart ↗</p>
               </div>
             </a>
