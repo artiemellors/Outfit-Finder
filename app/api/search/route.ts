@@ -196,10 +196,12 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
                       .map(col => ({
                         name: col.name,
                         products: col.products
-                          .map(idx => unusedProducts[idx])
-                          .filter((p): p is { id: string; name: string; price: string; colour?: string } => p !== undefined)
-                          .map(p => fullPool.get(p.id))
-                          .filter((p): p is Product => p !== undefined)
+                          .flatMap(idx => {
+                            const entry = unusedProducts[idx]
+                            if (!entry) return []
+                            const product = fullPool.get(entry.id)
+                            return product ? [product] : []
+                          })
                           .slice(0, 20),
                       }))
                       .filter(col => col.products.length >= 4)
