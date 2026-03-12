@@ -53,7 +53,6 @@ function shuffle(arr: string[]): string[] {
 function useRotatingCopy(phase: Phase) {
   const [copy, setCopy] = useState(() => PHASE_COPY[phase][0])
   const [visible, setVisible] = useState(true)
-  // Shuffle queue — walk through all phrases before repeating
   const queueRef = useRef<string[]>([])
   const idxRef   = useRef(1)
 
@@ -191,12 +190,12 @@ function LoadingState({ statuses }: { statuses: string[] }) {
       {/* Phase header */}
       <div className="flex items-baseline gap-3 mb-4">
         <span
-          className="font-serif text-2xl font-light text-[#1a1714] transition-opacity duration-[400ms]"
+          className="font-sans text-xl font-semibold text-[#1a1a1a] transition-opacity duration-[400ms]"
           style={{ opacity: visible ? 1 : 0 }}
         >
           {copy}
         </span>
-        <span className="text-sm text-[rgba(26,23,20,0.4)] hidden sm:block">{subLabel}</span>
+        <span className="text-sm text-[rgba(26,26,26,0.4)] hidden sm:block">{subLabel}</span>
       </div>
 
       {/* Indeterminate progress bar */}
@@ -210,9 +209,9 @@ function LoadingState({ statuses }: { statuses: string[] }) {
       {/* Skeleton layout — mirrors the 2-col results grid */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-[300px_1fr]">
         {/* Summary sidebar skeleton */}
-        <div className="bg-white border border-black/[0.08] rounded-sm p-7">
+        <div className="bg-white border border-black/[0.08] rounded p-7">
           <div className="skeleton h-2 w-16 rounded mb-3" />
-          <div className="w-10 h-0.5 bg-[#e8e3dc] mb-7" />
+          <div className="w-10 h-0.5 bg-[#e0e0e0] mb-7" />
           <div className="skeleton h-6 w-3/4 rounded mb-2" />
           <div className="skeleton h-6 w-1/2 rounded mb-7" />
           <div className="space-y-2 mb-8">
@@ -227,7 +226,7 @@ function LoadingState({ statuses }: { statuses: string[] }) {
             </div>
             <div className="skeleton h-3 w-10 rounded" />
           </div>
-          <div className="skeleton h-11 w-full rounded-sm mt-6" />
+          <div className="skeleton h-11 w-full rounded mt-6" />
         </div>
 
         {/* Item card skeletons */}
@@ -235,16 +234,16 @@ function LoadingState({ statuses }: { statuses: string[] }) {
           {[0, 1, 2].map(i => (
             <div key={i} className="bg-white border border-black/[0.08] p-5 sm:p-6">
               <div className="flex gap-4 sm:gap-6">
-                <div className="skeleton w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 rounded-sm" />
+                <div className="skeleton w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 rounded" />
                 <div className="flex-1 pt-1 space-y-2.5">
                   <div className="skeleton h-2 w-12 rounded" />
                   <div className="skeleton h-5 w-3/4 rounded" />
                   <div className="skeleton h-2.5 w-full rounded" />
                   <div className="skeleton h-2.5 w-2/3 rounded" />
                   <div className="flex gap-2 pt-2">
-                    <div className="skeleton h-7 w-7 rounded-sm" />
-                    <div className="skeleton h-7 w-9 rounded-sm" />
-                    <div className="skeleton h-7 w-7 rounded-sm" />
+                    <div className="skeleton h-7 w-7 rounded-full" />
+                    <div className="skeleton h-7 w-9 rounded" />
+                    <div className="skeleton h-7 w-7 rounded-full" />
                   </div>
                 </div>
               </div>
@@ -303,17 +302,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f2ee]">
+    <div className="min-h-screen bg-[#f5f5f5]">
       {/* Sticky header */}
       <header
-        className="sticky top-0 z-20 bg-[#f5f2ee] border-b border-black/[0.08]"
+        className="sticky top-0 z-20 bg-white border-b border-black/[0.08] shadow-sm"
         style={{ animation: 'fadeDown 0.6s ease both' }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between">
-          <span className="font-serif text-[22px] font-normal tracking-[0.08em] text-[#1a1714]">
-            Outfit <em style={{ color: 'var(--accent)' }}>Kurator</em>
+          <span className="font-sans text-xl font-bold tracking-tight text-[#1a1a1a]">
+            Outfit <span style={{ color: 'var(--accent)' }}>Kurator</span>
           </span>
-          <span className="hidden sm:block text-[11px] font-medium tracking-[0.15em] uppercase text-[rgba(26,23,20,0.5)]">
+          <span className="hidden sm:block text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(26,26,26,0.4)]">
             Powered by Kmart
           </span>
         </div>
@@ -331,17 +330,17 @@ export default function Home() {
           </span>
         </div>
 
-        <h1 className="font-serif font-light leading-[1.1] mb-10 max-w-[640px] text-[#1a1714]"
-            style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}>
+        <h1 className="font-sans font-bold leading-[1.1] mb-10 max-w-[640px] text-[#1a1a1a]"
+            style={{ fontSize: 'clamp(28px, 5vw, 48px)' }}>
           Find your complete look —{' '}
-          <em style={{ color: 'var(--accent)' }}>instantly.</em>
+          <span style={{ color: 'var(--accent)' }}>instantly.</span>
         </h1>
 
         <form
           onSubmit={handleSubmit}
-          className="flex w-full bg-white border border-black/[0.08] rounded-sm overflow-hidden
-                     transition-all duration-200 focus-within:border-[#e0208e]
-                     focus-within:shadow-[0_0_0_3px_rgba(224,32,142,0.1)]"
+          className="flex w-full bg-white border border-black/[0.08] rounded overflow-hidden
+                     transition-all duration-200 focus-within:border-[#1768B0]
+                     focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]"
         >
           <input
             value={query}
@@ -351,7 +350,7 @@ export default function Home() {
             placeholder={focused ? 'Describe the look you want…' : (typewriter || 'Describe the look you want…')}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
-                       text-sm font-light text-[#1a1714] placeholder:text-[rgba(26,23,20,0.3)]
+                       text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
                        disabled:opacity-50"
           />
           <button
@@ -375,11 +374,11 @@ export default function Home() {
               type="button"
               onClick={() => setGender(prev => prev === g ? null : g)}
               disabled={loading}
-              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-sm
+              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-full
                          border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
               style={gender === g
-                ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(224,32,142,0.06)' }
-                : { borderColor: 'rgba(26,23,20,0.12)', color: 'rgba(26,23,20,0.45)', background: 'transparent' }
+                ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(23,104,176,0.06)' }
+                : { borderColor: 'rgba(26,26,26,0.12)', color: 'rgba(26,26,26,0.45)', background: 'transparent' }
               }
             >
               {g === 'men' ? 'Men' : 'Women'}
@@ -390,7 +389,7 @@ export default function Home() {
         {loading && <LoadingState statuses={statuses} />}
 
         {error && (
-          <p className="mt-6 text-sm text-red-600 bg-white border border-red-200 rounded-sm px-4 py-3">
+          <p className="mt-6 text-sm text-red-600 bg-white border border-red-200 rounded px-4 py-3">
             {error}
           </p>
         )}
