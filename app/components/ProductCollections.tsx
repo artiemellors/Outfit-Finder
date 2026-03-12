@@ -42,8 +42,8 @@ export function ProductCollections({ collections }: { collections: ProductCollec
   const activeCollection = isLoading ? null : collections[activeTab]
 
   return (
-    <div id="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
-      <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mb-5">
+    <div id="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16 bg-white border-t border-[#e5e5e5]">
+      <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mt-8 mb-5">
         Shop the Edit
       </p>
 
@@ -91,17 +91,17 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 <img
                   src={p.imageUrl}
                   alt={p.name}
-                  className="aspect-[4/5] w-full object-cover bg-[--surface2]"
+                  className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-xl"
                 />
               ) : (
-                <div className="aspect-[4/5] w-full bg-[--surface2]" />
+                <div className="aspect-[4/5] w-full bg-[--surface2] rounded-xl" />
               )}
               {/* Product card — text content (title, price, link) */}
               <div id="ProductCard-content" className="p-3">
-                <p className="text-[14px] font-medium leading-tight line-clamp-2 text-[--text] mb-1">
+                <p className="text-[14px] font-normal leading-tight line-clamp-2 text-[--text] mb-3">
                   {p.name}
                 </p>
-                <p className="text-xl font-bold text-[--text] leading-none mb-1">
+                <p className="text-xl font-bold text-[--text] leading-none mb-3">
                   <sup className="text-xs font-bold align-super">$</sup>
                   {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                 </p>
