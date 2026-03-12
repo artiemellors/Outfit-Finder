@@ -160,7 +160,8 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
   return (
     <div className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
       {/* Outfit summary card */}
-      <div className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]">
+      <div className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]"
+           style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
           Selected Look
         </p>
@@ -216,7 +217,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
             item={item}
             idx={indices[i]}
             onIdxChange={newIdx => setIndices(prev => prev.map((v, j) => j === i ? newIdx : v))}
-            animDelay={i * 60}
+            animDelay={120 + i * 60}
           />
         ))}
       </div>
@@ -228,7 +229,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* Sticky tab bar */}
       <div className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-3">
