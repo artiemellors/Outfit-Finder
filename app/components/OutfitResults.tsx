@@ -55,7 +55,7 @@ function ItemCard({
   return (
     <div
       id="ItemCard"
-      className="bg-white border border-black/[0.08] p-5 sm:p-6"
+      className="bg-white border border-black/[0.08] rounded-xl p-5 sm:p-6"
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
       {/* ItemCard — inner row (image + content side by side) */}
@@ -163,7 +163,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
   return (
     <div id="OutfitView" className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
       {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
-      <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]"
+      <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-xl p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
           Selected Look
