@@ -1,9 +1,11 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { searchKmart, Product } from '@/lib/kmart-scraper'
+import { searchKmart, browseCollection, fetchCollections, Product } from '@/lib/kmart-scraper'
 
 const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
-1. In your FIRST response, call search_kmart for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls.
+1. In your FIRST response, call search_kmart and/or browse_collection for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls total.
+   - Use browse_collection when a collection id from the provided list is a strong match for the user's request (e.g. "blazers-for-women" for a formal women's look).
+   - Use search_kmart for specific product types not covered by a collection.
 2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
 
 Each product in search results has an "id", "name", "price", and "colour" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. Use the colour field to build cohesive outfits — prefer combinations where colours complement each other (e.g. neutrals together, or a statement colour paired with neutrals). You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
@@ -11,9 +13,15 @@ Each product in search results has an "id", "name", "price", and "colour" field.
 export async function POST(req: NextRequest) {
   const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
 
+  // Fetch clothing-relevant collections in parallel with building the prompt
+  const availableCollections = await fetchCollections()
+  const collectionContext = availableCollections.length > 0
+    ? `\n\nAvailable Kmart collections you can browse with browse_collection (id → display name):\n${availableCollections.map(c => `  ${c.id} → ${c.display_name}`).join('\n')}`
+    : ''
+
   const SYSTEM_PROMPT = gender
-    ? `${BASE_PROMPT}\n\nIMPORTANT: The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — every search query and all outfit suggestions must be for ${gender}'s clothing only. Prefix all search_kmart queries with "${gender === 'men' ? "men's" : "women's"}" unless the user has already specified it.`
-    : BASE_PROMPT
+    ? `${BASE_PROMPT}${collectionContext}\n\nIMPORTANT: The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — every search query and all outfit suggestions must be for ${gender}'s clothing only. Prefix all search_kmart queries with "${gender === 'men' ? "men's" : "women's"}" unless the user has already specified it.`
+    : `${BASE_PROMPT}${collectionContext}`
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
@@ -27,11 +35,20 @@ export async function POST(req: NextRequest) {
         const tools: Anthropic.Tool[] = [
           {
             name: 'search_kmart',
-            description: "Search Kmart Australia for products. Returns up to 6 products, each with an id, name, price, and colour.",
+            description: "Search Kmart Australia for products. Returns up to 10 products, each with an id, name, price, and colour.",
             input_schema: {
               type: 'object' as const,
               properties: { query: { type: 'string', description: "Search query, e.g. \"men's black t-shirt\"" } },
               required: ['query'],
+            },
+          },
+          {
+            name: 'browse_collection',
+            description: 'Browse a Kmart collection by its id to get products curated for that theme.',
+            input_schema: {
+              type: 'object' as const,
+              properties: { collection_id: { type: 'string', description: 'The collection id, e.g. "blazers-for-women"' } },
+              required: ['collection_id'],
             },
           },
           {
@@ -71,7 +88,8 @@ export async function POST(req: NextRequest) {
           },
         ]
 
-        const productMap = new Map<string, Product>()
+        const productMap = new Map<string, Product>()  // what Claude sees (10/search)
+        const fullPool = new Map<string, Product>()    // everything fetched (24/search)
         const messages: Anthropic.MessageParam[] = [{ role: 'user', content: query }]
         let turn = 0
         let searchIndex = 0
@@ -112,6 +130,11 @@ export async function POST(req: NextRequest) {
               }).outfits
               console.log(`[Claude] present_outfits called — ${Array.isArray(rawOutfits) ? rawOutfits.length : '?'} outfits`)
 
+              // Collect all product IDs referenced in outfit slots
+              const usedInOutfits = new Set(
+                rawOutfits.flatMap(o => o.items.flatMap(i => i.alternatives))
+              )
+
               // Resolve product IDs back to full product objects
               const outfits = rawOutfits.map(outfit => ({
                 ...outfit,
@@ -123,44 +146,115 @@ export async function POST(req: NextRequest) {
                 })),
               }))
 
+              // Send outfit results immediately — don't wait for collections
               send({ type: 'done', result: outfits })
-              controller.close()
+
+              // Build collections from full pool products not used in outfits
+              const unusedProducts = [...fullPool.entries()]
+                .filter(([id]) => !usedInOutfits.has(id))
+                .map(([id, p]) => ({ id, name: p.name, price: p.price, colour: p.colour }))
+
+              console.log(`[Collections] ${unusedProducts.length} unused products in pool for collections`)
+
+              if (unusedProducts.length >= 10) {
+                send({ type: 'status', message: 'Curating collections…' })
+                try {
+                  const collectionsResponse = await client.messages.create({
+                    model: 'claude-haiku-4-5-20251001',
+                    max_tokens: 1500,
+                    system: `You are a fashion merchandiser for a Kmart outfit finder app.
+A user searched for: "${query}".
+Group these products into 2–3 themed collections that complement that search.
+Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
+Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": string[] }] }`,
+                    messages: [{
+                      role: 'user',
+                      content: `Products:\n${unusedProducts.map(p =>
+                        `${p.id}: ${p.name}, ${p.price}${p.colour ? ', ' + p.colour : ''}`
+                      ).join('\n')}`,
+                    }],
+                  })
+
+                  const text = (collectionsResponse.content[0] as Anthropic.TextBlock).text
+                  // Extract JSON — Haiku sometimes wraps in markdown code fences
+                  const jsonMatch = text.match(/\{[\s\S]*\}/)
+                  if (jsonMatch) {
+                    const { collections: rawCollections } = JSON.parse(jsonMatch[0]) as {
+                      collections: Array<{ name: string; products: string[] }>
+                    }
+                    const resolvedCollections = rawCollections
+                      .map(col => ({
+                        name: col.name,
+                        products: col.products
+                          .map(id => fullPool.get(id))
+                          .filter((p): p is Product => p !== undefined)
+                          .slice(0, 20),
+                      }))
+                      .filter(col => col.products.length >= 10)
+
+                    console.log(`[Collections] ${resolvedCollections.length} collections resolved`)
+                    if (resolvedCollections.length > 0) {
+                      send({ type: 'collections', result: resolvedCollections })
+                    }
+                  }
+                } catch (collErr) {
+                  console.error('[Collections] Failed to curate collections:', collErr)
+                  // Non-fatal — outfit results already sent
+                }
+              }
+
               return
             }
 
             const searchBlocks = toolBlocks.filter(b => b.name === 'search_kmart')
-            console.log(`[Claude] Searching ${searchBlocks.length} categories in parallel: ${searchBlocks.map(b => `"${(b.input as { query: string }).query}"`).join(', ')}`)
-            searchBlocks.forEach(b =>
-              send({ type: 'status', message: `Searching for "${(b.input as { query: string }).query}"…` })
-            )
+            const browseBlocks = toolBlocks.filter(b => b.name === 'browse_collection')
+
+            const allFetchBlocks = [
+              ...searchBlocks.map(b => ({ block: b, type: 'search' as const, label: (b.input as { query: string }).query })),
+              ...browseBlocks.map(b => ({ block: b, type: 'browse' as const, label: (b.input as { collection_id: string }).collection_id })),
+            ]
+
+            allFetchBlocks.forEach(({ type, label }) => {
+              send({ type: 'status', message: type === 'search' ? `Searching for "${label}"…` : `Browsing collection "${label}"…` })
+            })
+            console.log(`[Claude] Fetching ${allFetchBlocks.length} sources in parallel: ${allFetchBlocks.map(f => `"${f.label}"`).join(', ')}`)
 
             const t0 = Date.now()
             const results = await Promise.all(
-              searchBlocks.map(b => searchKmart((b.input as { query: string }).query))
+              allFetchBlocks.map(({ type, label }) =>
+                type === 'search' ? searchKmart(label) : browseCollection(label)
+              )
             )
-            console.log(`[Search] All ${searchBlocks.length} searches done in ${Date.now() - t0}ms`)
+            console.log(`[Search] All ${allFetchBlocks.length} fetches done in ${Date.now() - t0}ms`)
 
-            const toolResults: Anthropic.ToolResultBlockParam[] = searchBlocks.map((b, i) => {
-              const q = (b.input as { query: string }).query
-              const products = results[i].slice(0, 6)
+            const toolResults: Anthropic.ToolResultBlockParam[] = allFetchBlocks.map(({ block, type, label }, i) => {
+              const allProducts = results[i]
+              const products = allProducts.slice(0, 10)  // Claude sees top 10
               const si = searchIndex++
-              console.log(`[Search] "${q}" → ${products.length} products`)
+              console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)
               if (products.length > 0) {
-                send({ type: 'status', message: `Found ${products.length} options for "${q}"` })
+                send({ type: 'status', message: `Found ${products.length} options for "${label}"` })
               } else {
-                send({ type: 'status', message: `No results for "${q}" — skipping` })
+                send({ type: 'status', message: `No results for "${label}" — skipping` })
               }
 
-              // Tag each product with a short ID and store in map; send id/name/price/colour to Claude
+              // Tag Claude's 10 products and store in both maps
               const tagged = products.map((p, pi) => {
                 const id = `q${si}p${pi}`
                 productMap.set(id, p)
+                fullPool.set(id, p)
                 return { id, name: p.name, price: p.price, ...(p.colour ? { colour: p.colour } : {}) }
+              })
+
+              // Store the remaining products in fullPool only (not visible to Claude)
+              allProducts.slice(10).forEach((p, pi) => {
+                const id = `q${si}x${pi}`
+                fullPool.set(id, p)
               })
 
               return {
                 type: 'tool_result' as const,
-                tool_use_id: b.id,
+                tool_use_id: block.id,
                 content: tagged.length > 0
                   ? JSON.stringify(tagged)
                   : 'No results found. Skip this category and proceed with what you have.',

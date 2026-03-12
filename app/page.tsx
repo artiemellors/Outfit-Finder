@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import OutfitResults, { type Outfit } from './components/OutfitResults'
+import { ProductCollections, type ProductCollection } from './components/ProductCollections'
 
 // ─── Editorial rotating copy ────────────────────────────────────────────────
 
@@ -258,13 +259,14 @@ function LoadingState({ statuses }: { statuses: string[] }) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const [query, setQuery]     = useState('')
-  const [statuses, setStatuses] = useState<string[]>([])
-  const [result, setResult]   = useState<Outfit[] | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState<string | null>(null)
-  const [focused, setFocused] = useState(false)
-  const [gender, setGender]   = useState<Gender>(null)
+  const [query, setQuery]         = useState('')
+  const [statuses, setStatuses]   = useState<string[]>([])
+  const [result, setResult]       = useState<Outfit[] | null>(null)
+  const [collections, setCollections] = useState<ProductCollection[] | null>(null)
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const [focused, setFocused]     = useState(false)
+  const [gender, setGender]       = useState<Gender>(null)
   const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0, gender)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -273,6 +275,7 @@ export default function Home() {
     setLoading(true)
     setStatuses([])
     setResult(null)
+    setCollections(null)
     setError(null)
 
     const res = await fetch('/api/search', {
@@ -294,9 +297,10 @@ export default function Home() {
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
         const event = JSON.parse(line.slice(6)) as { type: string; message?: string; result?: unknown }
-        if (event.type === 'status')      setStatuses(s => [...s, event.message!])
-        else if (event.type === 'done')   { setResult(event.result as Outfit[]); setLoading(false) }
-        else if (event.type === 'error')  { setError(event.message!); setLoading(false) }
+        if (event.type === 'status')           setStatuses(s => [...s, event.message!])
+        else if (event.type === 'done')        { setResult(event.result as Outfit[]); setLoading(false) }
+        else if (event.type === 'collections') setCollections(event.result as ProductCollection[])
+        else if (event.type === 'error')       { setError(event.message!); setLoading(false) }
       }
     }
   }
@@ -396,6 +400,7 @@ export default function Home() {
       </section>
 
       {result && <OutfitResults outfits={result} />}
+      {result && <ProductCollections collections={collections} />}
     </div>
   )
 }
