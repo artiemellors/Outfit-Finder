@@ -356,13 +356,13 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading}
-            className="shrink-0 px-8 py-[18px] text-[11px] font-semibold tracking-[0.18em] uppercase
+            className="shrink-0 px-7 py-[18px] text-base
                        text-white border-none cursor-pointer transition-all
                        hover:brightness-90 active:scale-[0.98]
                        disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent)' }}
           >
-            {loading ? 'Working…' : 'Search'}
+            {loading ? 'Working…' : <i className="fa-solid fa-magnifying-glass" />}
           </button>
         </form>
 
