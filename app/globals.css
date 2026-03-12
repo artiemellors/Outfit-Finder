@@ -1,40 +1,28 @@
 @import "tailwindcss";
 
-/* Wire next/font CSS variables into Tailwind's font-sans and font-serif utilities */
+/* Wire next/font CSS variables into Tailwind's font-sans utility */
 @theme {
   --font-family-sans: var(--font-sans), 'DM Sans', system-ui, sans-serif;
-  --font-family-serif: var(--font-serif), 'Cormorant Garamond', Georgia, serif;
 }
 
 :root {
-  --accent: #e0208e;
-  --accent-dim: rgba(224, 32, 142, 0.1);
-  --text: #1a1714;
-  --text-muted: rgba(26, 23, 20, 0.5);
-  --text-subtle: rgba(26, 23, 20, 0.3);
+  --accent: #1768B0;
+  --accent-dim: rgba(23, 104, 176, 0.08);
+  --text: #1a1a1a;
+  --text-muted: rgba(26, 26, 26, 0.5);
+  --text-subtle: rgba(26, 26, 26, 0.3);
   --border-soft: rgba(0, 0, 0, 0.08);
   --surface: #ffffff;
-  --surface2: #f0ece6;
-  --bg: #f5f2ee;
+  --surface2: #f0f0f0;
+  --bg: #f5f5f5;
 }
 
 body {
   font-family: var(--font-family-sans);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--text);
   background: var(--bg);
   overflow-x: clip;
-}
-
-/* Subtle paper grain overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.18;
 }
 
 @keyframes imgFadeIn {
@@ -71,7 +59,7 @@ body::before {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #ede8e2 25%, #e4ddd6 50%, #ede8e2 75%);
+  background: linear-gradient(90deg, #ebebeb 25%, #e0e0e0 50%, #ebebeb 75%);
   background-size: 600px 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
