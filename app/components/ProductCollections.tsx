@@ -80,12 +80,13 @@ export function ProductCollections({ collections }: { collections: ProductCollec
         ) : activeCollection ? (
           activeCollection.products.map((p, i) => (
             <a
-              key={i}
+              key={`${activeTab}-${i}`}
               href={p.productUrl ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               id="ProductCard"
               className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
+              style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
               {p.imageUrl ? (
@@ -93,6 +94,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   src={p.imageUrl}
                   alt={p.name}
                   className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-xl"
+                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
                 />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[--surface2] rounded-xl" />
