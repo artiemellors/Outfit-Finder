@@ -47,7 +47,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
         Shop the Edit
       </p>
 
-      {/* Tab bar */}
+      {/* ProductCollections — sticky collection tab bar */}
       <div className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
         {isLoading ? (
           <>
@@ -72,7 +72,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
         )}
       </div>
 
-      {/* Product grid */}
+      {/* ProductCollections — product grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {isLoading ? (
           Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
@@ -85,6 +85,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               rel="noopener noreferrer"
               className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
             >
+              {/* Product card — image */}
               {p.imageUrl ? (
                 <img
                   src={p.imageUrl}
@@ -94,6 +95,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               ) : (
                 <div className="aspect-[4/5] w-full bg-[--surface2]" />
               )}
+              {/* Product card — text content (title, price, link) */}
               <div className="p-3">
                 <p className="text-[14px] font-medium leading-tight line-clamp-2 text-[--text] mb-1">
                   {p.name}
