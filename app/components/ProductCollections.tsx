@@ -85,7 +85,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               target="_blank"
               rel="noopener noreferrer"
               id="ProductCard"
-              className="bg-white rounded-2xl overflow-hidden block transition-colors"
+              className="bg-white rounded-2xl overflow-hidden flex flex-col transition-colors"
               style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
@@ -100,7 +100,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
               )}
               {/* Product card — text content (title, price, link) */}
-              <div id="ProductCard-content" className="p-3">
+              <div id="ProductCard-content" className="p-3 flex flex-col flex-1">
                 <p className="text-[14px] font-normal leading-tight line-clamp-2 text-[--text] mb-3">
                   {p.name}
                 </p>
@@ -108,7 +108,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   <sup className="text-xs font-bold align-super">$</sup>
                   {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                 </p>
-                <p className="text-[11px] font-semibold text-[--accent]">View at Kmart ↗</p>
+                <p className="text-[11px] font-semibold text-blue-600 mt-auto">View at Kmart ↗</p>
               </div>
             </a>
           ))
