@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
                   const targetPerCollection = Math.min(20, Math.floor(unusedProducts.length / 2))
                   const collectionsResponse = await client.messages.create({
                     model: 'claude-sonnet-4-6',
-                    max_tokens: 1500,
+                    max_tokens: 4096,
                     system: `You are a fashion merchandiser for a Kmart outfit finder app.
 A user searched for: "${query}".
 Group these products into 2–3 themed collections that complement that search.
