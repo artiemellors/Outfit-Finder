@@ -85,7 +85,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               target="_blank"
               rel="noopener noreferrer"
               id="ProductCard"
-              className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
+              className="bg-white rounded-2xl overflow-hidden block transition-colors"
               style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
@@ -93,11 +93,11 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 <img
                   src={p.imageUrl}
                   alt={p.name}
-                  className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-xl"
+                  className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-lg"
                   style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
                 />
               ) : (
-                <div className="aspect-[4/5] w-full bg-[--surface2] rounded-xl" />
+                <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
               )}
               {/* Product card — text content (title, price, link) */}
               <div id="ProductCard-content" className="p-3">
