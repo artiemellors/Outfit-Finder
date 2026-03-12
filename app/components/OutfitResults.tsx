@@ -59,7 +59,7 @@ function ItemCard({
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
-        <div id="ItemCard-image" className="w-28 sm:w-[160px] shrink-0 bg-[#f0f0f0] self-stretch">
+        <div id="ItemCard-image" className="w-28 sm:w-[160px] h-[160px] shrink-0 bg-[#f0f0f0]">
           {product.imageUrl ? (
             <img
               key={idx}
