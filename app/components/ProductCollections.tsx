@@ -94,7 +94,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   src={p.imageUrl}
                   alt={p.name}
                   className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-lg"
-                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
+                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out`, mixBlendMode: 'multiply' }}
                 />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
