@@ -187,9 +187,21 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
 
                   const text = (collectionsResponse.content[0] as Anthropic.TextBlock).text
                   console.log(`[Collections] Sonnet raw response: ${text.slice(0, 300)}`)
-                  const jsonMatch = text.match(/\{[\s\S]*\}/)
-                  if (jsonMatch) {
-                    const { collections: rawCollections } = JSON.parse(jsonMatch[0]) as {
+                  // Extract JSON by matching balanced braces (greedy regex fails when model
+                  // appends text after the closing brace that itself contains a `}`)
+                  const extractJson = (s: string): string | null => {
+                    const start = s.indexOf('{')
+                    if (start === -1) return null
+                    let depth = 0
+                    for (let i = start; i < s.length; i++) {
+                      if (s[i] === '{') depth++
+                      else if (s[i] === '}' && --depth === 0) return s.slice(start, i + 1)
+                    }
+                    return null
+                  }
+                  const jsonStr = extractJson(text)
+                  if (jsonStr) {
+                    const { collections: rawCollections } = JSON.parse(jsonStr) as {
                       collections: Array<{ name: string; products: number[] }>
                     }
                     const resolvedCollections = rawCollections
