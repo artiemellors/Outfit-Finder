@@ -156,31 +156,37 @@ export async function POST(req: NextRequest) {
 
               console.log(`[Collections] ${unusedProducts.length} unused products in pool for collections`)
 
-              if (unusedProducts.length >= 10) {
+              if (unusedProducts.length >= 8) {
                 send({ type: 'status', message: 'Curating collections…' })
                 try {
-                  // Use sequential numeric indices instead of internal IDs — LLMs reliably
-                  // reproduce numbers, but tend to hallucinate the q0x2 style internal IDs.
+                  // Pass products as a JSON array with numeric ids — same format Claude already
+                  // knows from outfit search results. Sonnet reliably echoes back the ids it's given.
+                  const productList = unusedProducts.map((p, i) => ({
+                    id: i,
+                    name: p.name,
+                    price: p.price,
+                    ...(p.colour ? { colour: p.colour } : {}),
+                  }))
+
+                  const targetPerCollection = Math.min(20, Math.floor(unusedProducts.length / 2))
                   const collectionsResponse = await client.messages.create({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 1500,
                     system: `You are a fashion merchandiser for a Kmart outfit finder app.
 A user searched for: "${query}".
 Group these products into 2–3 themed collections that complement that search.
 Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
-Each product is listed as: INDEX: name, price, colour.
-Respond ONLY with valid JSON where "products" contains the numeric INDEX values (as numbers, not strings): { "collections": [{ "name": string, "products": number[] }] }`,
+Aim for ${targetPerCollection} products per collection. Every product should appear in exactly one collection — distribute them all.
+Each product has a numeric "id" field. Use those exact id values in your response.
+Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": number[] }] }`,
                     messages: [{
                       role: 'user',
-                      content: `Products:\n${unusedProducts.map((p, idx) =>
-                        `${idx}: ${p.name}, ${p.price}${p.colour ? ', ' + p.colour : ''}`
-                      ).join('\n')}`,
+                      content: JSON.stringify(productList),
                     }],
                   })
 
                   const text = (collectionsResponse.content[0] as Anthropic.TextBlock).text
-                  console.log(`[Collections] Haiku raw response: ${text.slice(0, 300)}`)
-                  // Extract JSON — Haiku sometimes wraps in markdown code fences
+                  console.log(`[Collections] Sonnet raw response: ${text.slice(0, 300)}`)
                   const jsonMatch = text.match(/\{[\s\S]*\}/)
                   if (jsonMatch) {
                     const { collections: rawCollections } = JSON.parse(jsonMatch[0]) as {
@@ -196,7 +202,7 @@ Respond ONLY with valid JSON where "products" contains the numeric INDEX values 
                           .filter((p): p is Product => p !== undefined)
                           .slice(0, 20),
                       }))
-                      .filter(col => col.products.length >= 10)
+                      .filter(col => col.products.length >= 4)
 
                     console.log(`[Collections] ${resolvedCollections.length} collections resolved`)
                     if (resolvedCollections.length > 0) {
