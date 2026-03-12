@@ -55,13 +55,11 @@ function ItemCard({
   return (
     <div
       id="ItemCard"
-      className="bg-white border border-black/[0.08] rounded-xl p-5 sm:p-6"
+      className="bg-white border border-black/[0.08] rounded-lg overflow-hidden flex gap-4 sm:gap-6"
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
-      {/* ItemCard — inner row (image + content side by side) */}
-      <div id="ItemCard-row" className="flex gap-4 sm:gap-6">
-        {/* ItemCard — image thumbnail */}
-        <div id="ItemCard-image" className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded-2xl overflow-hidden">
+        {/* ItemCard — image thumbnail (flush to card edges) */}
+        <div id="ItemCard-image" className="w-24 sm:w-[130px] shrink-0 bg-[#f0f0f0] self-stretch">
           {product.imageUrl ? (
             <img
               key={idx}
@@ -78,7 +76,7 @@ function ItemCard({
         </div>
 
         {/* ItemCard — content column (meta + price/link) */}
-        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6">
+        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-5 sm:pr-6">
           {/* ItemCard — product meta (category, name, colour, description, nav) */}
           <div id="ItemCard-meta" className="flex-1 min-w-0">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
@@ -135,7 +133,6 @@ function ItemCard({
             </a>
           </div>
         </div>
-      </div>
     </div>
   )
 }
@@ -163,7 +160,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
   return (
     <div id="OutfitView" className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
       {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
-      <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-xl p-7 lg:sticky lg:top-[172px]"
+      <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-lg p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
           Selected Look
