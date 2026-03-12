@@ -25,6 +25,16 @@ body {
   overflow-x: clip;
 }
 
+@keyframes searchRock {
+  0%   { transform: perspective(200px) rotateY(-15deg); }
+  50%  { transform: perspective(200px) rotateY(15deg); }
+  100% { transform: perspective(200px) rotateY(-15deg); }
+}
+
+.animate-search-rock {
+  animation: searchRock 1s ease-in-out infinite;
+}
+
 @keyframes imgFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
