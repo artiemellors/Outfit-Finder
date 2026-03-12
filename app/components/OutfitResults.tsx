@@ -54,13 +54,14 @@ function ItemCard({
 
   return (
     <div
+      data-component="ItemCard"
       className="bg-white border border-black/[0.08] p-5 sm:p-6"
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
       {/* ItemCard — inner row (image + content side by side) */}
-      <div className="flex gap-4 sm:gap-6">
+      <div data-component="ItemCard-row" className="flex gap-4 sm:gap-6">
         {/* ItemCard — image thumbnail */}
-        <div className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded-2xl overflow-hidden">
+        <div data-component="ItemCard-image" className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded-2xl overflow-hidden">
           {product.imageUrl ? (
             <img
               key={idx}
@@ -77,9 +78,9 @@ function ItemCard({
         </div>
 
         {/* ItemCard — content column (meta + price/link) */}
-        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6">
+        <div data-component="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6">
           {/* ItemCard — product meta (category, name, colour, description, nav) */}
-          <div className="flex-1 min-w-0">
+          <div data-component="ItemCard-meta" className="flex-1 min-w-0">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
                style={{ color: 'var(--accent)' }}>
               {item.category}
@@ -94,7 +95,7 @@ function ItemCard({
               {item.description}
             </p>
             {/* ItemCard — alternative nav (prev/next arrows) */}
-            <div className="flex items-center gap-2 mt-3">
+            <div data-component="ItemCard-nav" className="flex items-center gap-2 mt-3">
               <button
                 onClick={() => onIdxChange((idx - 1 + count) % count)}
                 className="w-7 h-7 border border-black/[0.08] rounded-full flex items-center justify-center
@@ -116,7 +117,7 @@ function ItemCard({
           </div>
 
           {/* ItemCard — price + "View at Kmart" link */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between
+          <div data-component="ItemCard-price" className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between
                           mt-3 sm:mt-0 sm:gap-4 shrink-0">
             <KmartPrice
               price={product.price}
@@ -160,9 +161,9 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
 
   // OutfitView: two-column layout (summary card left, items list right)
   return (
-    <div className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
+    <div data-component="OutfitView" className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
       {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
-      <div className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]"
+      <div data-component="OutfitView-summary" className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
           Selected Look
@@ -178,7 +179,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
         </p>
 
         {/* Summary card — total price row */}
-        <div className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
+        <div data-component="OutfitView-summary-total" className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[rgba(26,26,26,0.35)] mb-1">
               Complete outfit
@@ -212,7 +213,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
       </div>
 
       {/* OutfitView — items list (one ItemCard per outfit slot) */}
-      <div className="flex flex-col gap-0.5">
+      <div data-component="OutfitView-items" className="flex flex-col gap-0.5">
         {outfit.items.map((item, i) => (
           <ItemCard
             key={item.category}
@@ -231,9 +232,9 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
+    <div data-component="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
-      <div className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
+      <div data-component="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-3">
           Style direction
         </p>
