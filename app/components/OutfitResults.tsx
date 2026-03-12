@@ -57,8 +57,9 @@ function ItemCard({
       className="bg-white border border-black/[0.08] p-5 sm:p-6"
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
+      {/* ItemCard — inner row (image + content side by side) */}
       <div className="flex gap-4 sm:gap-6">
-        {/* Image — 4:5 portrait ratio */}
+        {/* ItemCard — image thumbnail */}
         <div className="w-24 h-[120px] sm:w-[120px] sm:h-[150px] shrink-0 bg-[#f0f0f0] rounded-2xl overflow-hidden">
           {product.imageUrl ? (
             <img
@@ -75,9 +76,9 @@ function ItemCard({
           )}
         </div>
 
-        {/* Content: meta + price/link (stacks on mobile, row on desktop) */}
+        {/* ItemCard — content column (meta + price/link) */}
         <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6">
-          {/* Meta */}
+          {/* ItemCard — product meta (category, name, colour, description, nav) */}
           <div className="flex-1 min-w-0">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
                style={{ color: 'var(--accent)' }}>
@@ -92,7 +93,7 @@ function ItemCard({
             <p className="text-xs leading-relaxed text-[rgba(26,26,26,0.5)] line-clamp-2">
               {item.description}
             </p>
-            {/* Nav */}
+            {/* ItemCard — alternative nav (prev/next arrows) */}
             <div className="flex items-center gap-2 mt-3">
               <button
                 onClick={() => onIdxChange((idx - 1 + count) % count)}
@@ -114,7 +115,7 @@ function ItemCard({
             </div>
           </div>
 
-          {/* Price + link — row on mobile (below meta), column on desktop (right side) */}
+          {/* ItemCard — price + "View at Kmart" link */}
           <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between
                           mt-3 sm:mt-0 sm:gap-4 shrink-0">
             <KmartPrice
@@ -157,15 +158,16 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
     }
   }, [total])
 
+  // OutfitView: two-column layout (summary card left, items list right)
   return (
     <div className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
-      {/* Outfit summary card */}
+      {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
       <div className="bg-white border border-black/[0.08] rounded p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
           Selected Look
         </p>
-        {/* Accent line */}
+        {/* Summary card — accent rule */}
         <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
 
         <h2 className="font-sans text-2xl font-bold leading-snug text-[#1a1a1a] mb-3">
@@ -175,7 +177,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
           {outfit.description}
         </p>
 
-        {/* Total */}
+        {/* Summary card — total price row */}
         <div className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[rgba(26,26,26,0.35)] mb-1">
@@ -209,7 +211,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
         </button>
       </div>
 
-      {/* Items list */}
+      {/* OutfitView — items list (one ItemCard per outfit slot) */}
       <div className="flex flex-col gap-0.5">
         {outfit.items.map((item, i) => (
           <ItemCard
@@ -230,7 +232,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
-      {/* Sticky tab bar */}
+      {/* OutfitResults — sticky outfit tab bar */}
       <div className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-3">
           Style direction
