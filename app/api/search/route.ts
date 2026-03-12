@@ -159,6 +159,8 @@ export async function POST(req: NextRequest) {
               if (unusedProducts.length >= 10) {
                 send({ type: 'status', message: 'Curating collections…' })
                 try {
+                  // Use sequential numeric indices instead of internal IDs — LLMs reliably
+                  // reproduce numbers, but tend to hallucinate the q0x2 style internal IDs.
                   const collectionsResponse = await client.messages.create({
                     model: 'claude-haiku-4-5-20251001',
                     max_tokens: 1500,
@@ -166,27 +168,31 @@ export async function POST(req: NextRequest) {
 A user searched for: "${query}".
 Group these products into 2–3 themed collections that complement that search.
 Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
-Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": string[] }] }`,
+Each product is listed as: INDEX: name, price, colour.
+Respond ONLY with valid JSON where "products" contains the numeric INDEX values (as numbers, not strings): { "collections": [{ "name": string, "products": number[] }] }`,
                     messages: [{
                       role: 'user',
-                      content: `Products:\n${unusedProducts.map(p =>
-                        `${p.id}: ${p.name}, ${p.price}${p.colour ? ', ' + p.colour : ''}`
+                      content: `Products:\n${unusedProducts.map((p, idx) =>
+                        `${idx}: ${p.name}, ${p.price}${p.colour ? ', ' + p.colour : ''}`
                       ).join('\n')}`,
                     }],
                   })
 
                   const text = (collectionsResponse.content[0] as Anthropic.TextBlock).text
+                  console.log(`[Collections] Haiku raw response: ${text.slice(0, 300)}`)
                   // Extract JSON — Haiku sometimes wraps in markdown code fences
                   const jsonMatch = text.match(/\{[\s\S]*\}/)
                   if (jsonMatch) {
                     const { collections: rawCollections } = JSON.parse(jsonMatch[0]) as {
-                      collections: Array<{ name: string; products: string[] }>
+                      collections: Array<{ name: string; products: number[] }>
                     }
                     const resolvedCollections = rawCollections
                       .map(col => ({
                         name: col.name,
                         products: col.products
-                          .map(id => fullPool.get(id))
+                          .map(idx => unusedProducts[idx])
+                          .filter((p): p is { id: string; name: string; price: string; colour?: string } => p !== undefined)
+                          .map(p => fullPool.get(p.id))
                           .filter((p): p is Product => p !== undefined)
                           .slice(0, 20),
                       }))
