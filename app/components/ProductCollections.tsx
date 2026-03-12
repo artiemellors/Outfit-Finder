@@ -42,13 +42,13 @@ export function ProductCollections({ collections }: { collections: ProductCollec
   const activeCollection = isLoading ? null : collections[activeTab]
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
+    <div data-component="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
       <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mb-5">
         Shop the Edit
       </p>
 
       {/* ProductCollections — sticky collection tab bar */}
-      <div className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
+      <div data-component="ProductCollections-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
         {isLoading ? (
           <>
             <div className="skeleton h-8 w-28 rounded-full" />
@@ -73,7 +73,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
       </div>
 
       {/* ProductCollections — product grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div data-component="ProductCollections-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {isLoading ? (
           Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
         ) : activeCollection ? (
@@ -83,6 +83,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               href={p.productUrl ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
+              data-component="ProductCard"
               className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
             >
               {/* Product card — image */}
@@ -96,7 +97,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 <div className="aspect-[4/5] w-full bg-[--surface2]" />
               )}
               {/* Product card — text content (title, price, link) */}
-              <div className="p-3">
+              <div data-component="ProductCard-content" className="p-3">
                 <p className="text-[14px] font-medium leading-tight line-clamp-2 text-[--text] mb-1">
                   {p.name}
                 </p>
