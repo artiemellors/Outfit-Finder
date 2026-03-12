@@ -42,13 +42,14 @@ export function ProductCollections({ collections }: { collections: ProductCollec
   const activeCollection = isLoading ? null : collections[activeTab]
 
   return (
-    <div id="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16 bg-white border-t border-[#e5e5e5]">
+    <div className="w-full bg-white border-t border-[#e5e5e5]">
+    <div id="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
       <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mt-8 mb-5">
         Shop the Edit
       </p>
 
       {/* ProductCollections — sticky collection tab bar */}
-      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
+      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-white -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
         {isLoading ? (
           <>
             <div className="skeleton h-8 w-28 rounded-full" />
@@ -79,12 +80,13 @@ export function ProductCollections({ collections }: { collections: ProductCollec
         ) : activeCollection ? (
           activeCollection.products.map((p, i) => (
             <a
-              key={i}
+              key={`${activeTab}-${i}`}
               href={p.productUrl ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               id="ProductCard"
               className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden block hover:border-black/20 transition-colors"
+              style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
               {p.imageUrl ? (
@@ -92,6 +94,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   src={p.imageUrl}
                   alt={p.name}
                   className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-xl"
+                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
                 />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[--surface2] rounded-xl" />
@@ -111,6 +114,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
           ))
         ) : null}
       </div>
+    </div>
     </div>
   )
 }
