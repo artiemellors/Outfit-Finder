@@ -362,7 +362,7 @@ export default function Home() {
                        disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent)' }}
           >
-            <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-spin' : ''}`} />
+            <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
           </button>
         </form>
 
