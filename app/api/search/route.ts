@@ -10,6 +10,17 @@ const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user
 
 Each product in search results has an "id", "name", "price", and "colour" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. Use the colour field to build cohesive outfits — prefer combinations where colours complement each other (e.g. neutrals together, or a statement colour paired with neutrals). You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
 
+// Keyword-based gender filter applied at the data layer as a backstop.
+// Kmart product names reliably contain gendered terms we can check against.
+const WOMENS_TERMS = /\b(women'?s?|ladies|girl'?s?|feminine|womens)\b/i
+const MENS_TERMS   = /\b(men'?s?|guy'?s?|boys?|masculine|mens)\b/i
+
+function filterByGender(products: Product[], gender: 'men' | 'women' | null): Product[] {
+  if (!gender) return products
+  const excludePattern = gender === 'men' ? WOMENS_TERMS : MENS_TERMS
+  return products.filter(p => !excludePattern.test(p.name))
+}
+
 export async function POST(req: NextRequest) {
   const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
 
@@ -173,7 +184,7 @@ export async function POST(req: NextRequest) {
                     model: 'claude-sonnet-4-6',
                     max_tokens: 4096,
                     system: `You are a fashion merchandiser for a Kmart outfit finder app.
-A user searched for: "${query}".
+A user searched for: "${query}".${gender ? ` The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — only include ${gender}'s clothing.` : ''}
 Group these products into 2–3 themed collections that complement that search.
 Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
 Aim for ${targetPerCollection} products per collection. Every product should appear in exactly one collection — distribute them all.
@@ -254,7 +265,7 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
             console.log(`[Search] All ${allFetchBlocks.length} fetches done in ${Date.now() - t0}ms`)
 
             const toolResults: Anthropic.ToolResultBlockParam[] = allFetchBlocks.map(({ block, type, label }, i) => {
-              const allProducts = results[i]
+              const allProducts = filterByGender(results[i], gender)
               const products = allProducts.slice(0, 10)  // Claude sees top 10
               const si = searchIndex++
               console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)

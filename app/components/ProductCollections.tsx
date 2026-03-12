@@ -94,7 +94,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   src={p.imageUrl}
                   alt={p.name}
                   className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-lg"
-                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
+                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out`, mixBlendMode: 'multiply' }}
                 />
               ) : (
                 <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
@@ -108,7 +108,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   <sup className="text-xs font-bold align-super">$</sup>
                   {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                 </p>
-                <p className="text-[11px] font-semibold text-blue-600 mt-auto">View at Kmart ↗</p>
+                <p className="text-[11px] font-semibold mt-auto" style={{ color: '#1768B0' }}>View at Kmart ↗</p>
               </div>
             </a>
           ))
