@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
   const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
 
   // Fetch clothing-relevant collections in parallel with building the prompt
-  const collections = await fetchCollections()
-  const collectionContext = collections.length > 0
-    ? `\n\nAvailable Kmart collections you can browse with browse_collection (id → display name):\n${collections.map(c => `  ${c.id} → ${c.display_name}`).join('\n')}`
+  const availableCollections = await fetchCollections()
+  const collectionContext = availableCollections.length > 0
+    ? `\n\nAvailable Kmart collections you can browse with browse_collection (id → display name):\n${availableCollections.map(c => `  ${c.id} → ${c.display_name}`).join('\n')}`
     : ''
 
   const SYSTEM_PROMPT = gender
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         const tools: Anthropic.Tool[] = [
           {
             name: 'search_kmart',
-            description: "Search Kmart Australia for products. Returns up to 6 products, each with an id, name, price, and colour.",
+            description: "Search Kmart Australia for products. Returns up to 10 products, each with an id, name, price, and colour.",
             input_schema: {
               type: 'object' as const,
               properties: { query: { type: 'string', description: "Search query, e.g. \"men's black t-shirt\"" } },
@@ -88,7 +88,8 @@ export async function POST(req: NextRequest) {
           },
         ]
 
-        const productMap = new Map<string, Product>()
+        const productMap = new Map<string, Product>()  // what Claude sees (10/search)
+        const fullPool = new Map<string, Product>()    // everything fetched (24/search)
         const messages: Anthropic.MessageParam[] = [{ role: 'user', content: query }]
         let turn = 0
         let searchIndex = 0
@@ -129,6 +130,11 @@ export async function POST(req: NextRequest) {
               }).outfits
               console.log(`[Claude] present_outfits called — ${Array.isArray(rawOutfits) ? rawOutfits.length : '?'} outfits`)
 
+              // Collect all product IDs referenced in outfit slots
+              const usedInOutfits = new Set(
+                rawOutfits.flatMap(o => o.items.flatMap(i => i.alternatives))
+              )
+
               // Resolve product IDs back to full product objects
               const outfits = rawOutfits.map(outfit => ({
                 ...outfit,
@@ -140,8 +146,63 @@ export async function POST(req: NextRequest) {
                 })),
               }))
 
+              // Send outfit results immediately — don't wait for collections
               send({ type: 'done', result: outfits })
-              controller.close()
+
+              // Build collections from full pool products not used in outfits
+              const unusedProducts = [...fullPool.entries()]
+                .filter(([id]) => !usedInOutfits.has(id))
+                .map(([id, p]) => ({ id, name: p.name, price: p.price, colour: p.colour }))
+
+              console.log(`[Collections] ${unusedProducts.length} unused products in pool for collections`)
+
+              if (unusedProducts.length >= 10) {
+                send({ type: 'status', message: 'Curating collections…' })
+                try {
+                  const collectionsResponse = await client.messages.create({
+                    model: 'claude-haiku-4-5-20251001',
+                    max_tokens: 1500,
+                    system: `You are a fashion merchandiser for a Kmart outfit finder app.
+A user searched for: "${query}".
+Group these products into 2–3 themed collections that complement that search.
+Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
+Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": string[] }] }`,
+                    messages: [{
+                      role: 'user',
+                      content: `Products:\n${unusedProducts.map(p =>
+                        `${p.id}: ${p.name}, ${p.price}${p.colour ? ', ' + p.colour : ''}`
+                      ).join('\n')}`,
+                    }],
+                  })
+
+                  const text = (collectionsResponse.content[0] as Anthropic.TextBlock).text
+                  // Extract JSON — Haiku sometimes wraps in markdown code fences
+                  const jsonMatch = text.match(/\{[\s\S]*\}/)
+                  if (jsonMatch) {
+                    const { collections: rawCollections } = JSON.parse(jsonMatch[0]) as {
+                      collections: Array<{ name: string; products: string[] }>
+                    }
+                    const resolvedCollections = rawCollections
+                      .map(col => ({
+                        name: col.name,
+                        products: col.products
+                          .map(id => fullPool.get(id))
+                          .filter((p): p is Product => p !== undefined)
+                          .slice(0, 20),
+                      }))
+                      .filter(col => col.products.length >= 10)
+
+                    console.log(`[Collections] ${resolvedCollections.length} collections resolved`)
+                    if (resolvedCollections.length > 0) {
+                      send({ type: 'collections', result: resolvedCollections })
+                    }
+                  }
+                } catch (collErr) {
+                  console.error('[Collections] Failed to curate collections:', collErr)
+                  // Non-fatal — outfit results already sent
+                }
+              }
+
               return
             }
 
@@ -167,20 +228,28 @@ export async function POST(req: NextRequest) {
             console.log(`[Search] All ${allFetchBlocks.length} fetches done in ${Date.now() - t0}ms`)
 
             const toolResults: Anthropic.ToolResultBlockParam[] = allFetchBlocks.map(({ block, type, label }, i) => {
-              const products = results[i].slice(0, 6)
+              const allProducts = results[i]
+              const products = allProducts.slice(0, 10)  // Claude sees top 10
               const si = searchIndex++
-              console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${products.length} products`)
+              console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)
               if (products.length > 0) {
                 send({ type: 'status', message: `Found ${products.length} options for "${label}"` })
               } else {
                 send({ type: 'status', message: `No results for "${label}" — skipping` })
               }
 
-              // Tag each product with a short ID and store in map; send id/name/price/colour to Claude
+              // Tag Claude's 10 products and store in both maps
               const tagged = products.map((p, pi) => {
                 const id = `q${si}p${pi}`
                 productMap.set(id, p)
+                fullPool.set(id, p)
                 return { id, name: p.name, price: p.price, ...(p.colour ? { colour: p.colour } : {}) }
+              })
+
+              // Store the remaining products in fullPool only (not visible to Claude)
+              allProducts.slice(10).forEach((p, pi) => {
+                const id = `q${si}x${pi}`
+                fullPool.set(id, p)
               })
 
               return {
