@@ -213,7 +213,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
       </div>
 
       {/* OutfitView — items list (one ItemCard per outfit slot) */}
-      <div id="OutfitView-items" className="flex flex-col gap-0.5">
+      <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
         {outfit.items.map((item, i) => (
           <ItemCard
             key={item.category}
