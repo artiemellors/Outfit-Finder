@@ -305,7 +305,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#f5f5f5]">
       {/* Sticky header */}
       <header
-        className="sticky top-0 z-20 bg-white border-b border-black/[0.08] shadow-sm"
+        className="sticky top-0 z-20 bg-white border-b border-black/[0.06]"
         style={{ animation: 'fadeDown 0.6s ease both' }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between">
