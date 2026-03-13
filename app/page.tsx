@@ -444,7 +444,7 @@ export default function Home() {
               type="button"
               onClick={() => setGender(prev => prev === g ? null : g)}
               disabled={loading}
-              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-full
+              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-[4px]
                          border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
               style={gender === g
                 ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(23,104,176,0.06)' }
