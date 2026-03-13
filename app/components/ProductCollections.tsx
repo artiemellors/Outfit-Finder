@@ -49,7 +49,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
       </p>
 
       {/* ProductCollections — sticky collection tab bar */}
-      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-white -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 flex-wrap">
+      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-white -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 overflow-x-auto sm:flex-wrap scrollbar-hide">
         {isLoading ? (
           <>
             <div className="skeleton h-8 w-28 rounded-full" />
@@ -61,7 +61,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
             <button
               key={i}
               onClick={() => setActiveTab(i)}
-              className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm border transition-colors whitespace-nowrap shrink-0 ${
                 i === activeTab
                   ? 'border-[--accent] text-[--accent] bg-white'
                   : 'border-black/[0.08] text-[--text] bg-white hover:border-black/20'
