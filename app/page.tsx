@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import OutfitResults, { type Outfit } from './components/OutfitResults'
 import { ProductCollections, type ProductCollection } from './components/ProductCollections'
+import RefinementChips from './components/RefinementChips'
 
 // ─── Editorial rotating copy ────────────────────────────────────────────────
 
@@ -296,6 +297,7 @@ export default function Home() {
   const [statuses, setStatuses]   = useState<string[]>([])
   const [result, setResult]       = useState<Outfit[] | null>(null)
   const [collections, setCollections] = useState<ProductCollection[] | null>(null)
+  const [refinements, setRefinements] = useState<string[] | null>(null)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [focused, setFocused]     = useState(false)
@@ -309,6 +311,7 @@ export default function Home() {
     setStatuses([])
     setResult(null)
     setCollections(null)
+    setRefinements(null)
     setError(null)
 
     const res = await fetch('/api/search', {
@@ -333,6 +336,7 @@ export default function Home() {
         if (event.type === 'status')           setStatuses(s => [...s, event.message!])
         else if (event.type === 'done')        { setResult(event.result as Outfit[]); setLoading(false) }
         else if (event.type === 'collections') setCollections(event.result as ProductCollection[])
+        else if (event.type === 'refinements') setRefinements(event.result as string[])
         else if (event.type === 'error')       { setError(event.message!); setLoading(false) }
       }
     }
@@ -462,6 +466,12 @@ export default function Home() {
         )}
       </section>
 
+      {result && refinements && (
+        <RefinementChips
+          chips={refinements}
+          onRefine={chip => runSearch(`${query} — ${chip}`)}
+        />
+      )}
       {result && <OutfitResults outfits={result} />}
       {result && <ProductCollections collections={collections} />}
     </div>
