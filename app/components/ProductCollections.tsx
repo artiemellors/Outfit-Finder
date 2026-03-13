@@ -85,7 +85,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               target="_blank"
               rel="noopener noreferrer"
               id="ProductCard"
-              className="bg-white rounded-2xl overflow-hidden flex flex-col transition-colors"
+              className="bg-white rounded-lg overflow-hidden flex flex-col transition-colors"
               style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
