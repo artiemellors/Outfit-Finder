@@ -227,22 +227,21 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
   return (
     <div id="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
-      <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 pb-4 mb-6">
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-3">
+      <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-0">
           Style direction
         </p>
-        <div className="flex gap-2 overflow-x-auto sm:flex-wrap scrollbar-hide">
+        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08] mt-3">
           {outfits.map((outfit, i) => (
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`px-5 py-2.5 rounded-full border text-[11px] font-semibold tracking-[0.08em]
-                          uppercase transition-all duration-200 active:scale-95 whitespace-nowrap
+              className={`px-5 pb-3 pt-1 text-[11px] font-semibold tracking-[0.12em]
+                          uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
-                            ? 'text-white border-transparent'
-                            : 'bg-transparent text-[rgba(26,26,26,0.5)] border-black/[0.12] hover:text-[#1a1a1a]'
+                            ? 'border-[#1768B0] text-[#1768B0]'
+                            : 'border-transparent text-[rgba(26,26,26,0.4)] hover:text-[#1a1a1a]'
                           }`}
-              style={i === activeIdx ? { background: 'var(--accent)', borderColor: 'var(--accent)' } : {}}
             >
               {outfit.name}
             </button>
