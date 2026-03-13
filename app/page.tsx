@@ -388,8 +388,23 @@ export default function Home() {
                      transition-all duration-200 focus-within:border-[#1768B0]
                      focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]"
         >
-          {/* Gender segmented control */}
-          <div className="flex items-center pl-3 pr-1 shrink-0 gap-0.5">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={focused ? '' : typewriter}
+            disabled={loading}
+            className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
+                       text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
+                       disabled:opacity-50"
+          />
+
+          {/* Divider — desktop only */}
+          <div className="hidden sm:block w-px self-stretch my-3 bg-black/[0.08] shrink-0" />
+
+          {/* Gender segmented control — desktop only (right side of bar) */}
+          <div className="hidden sm:flex items-center pl-1 pr-3 shrink-0 gap-0.5">
             {(['men', 'women'] as const).map(g => (
               <button
                 key={g}
@@ -408,20 +423,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="w-px self-stretch my-3 bg-black/[0.08] shrink-0" />
-
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={focused ? '' : typewriter}
-            disabled={loading}
-            className="flex-1 min-w-0 bg-transparent border-none outline-none px-5 py-[18px]
-                       text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
-                       disabled:opacity-50"
-          />
           <button
             type="submit"
             disabled={loading}
@@ -434,6 +435,26 @@ export default function Home() {
             <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
           </button>
         </form>
+
+        {/* Gender toggle — mobile only (below bar) */}
+        <div className="sm:hidden flex gap-2 mt-3">
+          {(['men', 'women'] as const).map(g => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGender(prev => prev === g ? null : g)}
+              disabled={loading}
+              className="px-4 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase rounded-full
+                         border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={gender === g
+                ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'rgba(23,104,176,0.06)' }
+                : { borderColor: 'rgba(26,26,26,0.12)', color: 'rgba(26,26,26,0.45)', background: 'transparent' }
+              }
+            >
+              {g === 'men' ? 'Men' : 'Women'}
+            </button>
+          ))}
+        </div>
 
         {/* Occasion tiles — visible on empty state only */}
         {!loading && !result && (
