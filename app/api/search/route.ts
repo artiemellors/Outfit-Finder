@@ -93,6 +93,11 @@ export async function POST(req: NextRequest) {
                     },
                   },
                 },
+                refinements: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: '4–6 short refinement suggestions the user could apply to this search. Each should be a 2–5 word lowercase phrase, e.g. "make it more casual", "darker tones", "tighter budget", "add a layer", "more formal". Vary them — cover at least one price direction, one style shift, and one tone or colour direction.',
+                },
               },
               required: ['outfits'],
             },
@@ -159,6 +164,15 @@ export async function POST(req: NextRequest) {
 
               // Send outfit results immediately — don't wait for collections
               send({ type: 'done', result: outfits })
+
+              // Emit AI-generated refinement chips
+              const rawRefinements = (presentBlock.input as { refinements?: unknown }).refinements
+              const refinements = Array.isArray(rawRefinements)
+                ? (rawRefinements as string[]).filter(r => typeof r === 'string').slice(0, 6)
+                : []
+              if (refinements.length > 0) {
+                send({ type: 'refinements', result: refinements })
+              }
 
               // Build collections from full pool products not used in outfits
               const unusedProducts = [...fullPool.entries()]
