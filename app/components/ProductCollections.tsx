@@ -107,7 +107,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   {p.name}
                 </p>
                 <p className="text-xl font-bold text-[--text] leading-none mb-3">
-                  <sup className="text-xs font-bold align-super">$</sup>
+                  <span className="text-xs font-bold align-top">$</span>
                   {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                 </p>
                 <p className="text-[11px] font-semibold mt-auto" style={{ color: '#1768B0' }}>View at Kmart ↗</p>

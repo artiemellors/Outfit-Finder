@@ -32,7 +32,7 @@ function KmartPrice({ price, className = '' }: { price: string; className?: stri
   const stripped = price.startsWith('$') ? price.slice(1) : price
   return (
     <span className={className}>
-      <sup className="text-sm font-bold leading-none align-super">$</sup>
+      <span className="text-sm font-bold align-top">$</span>
       {stripped}
     </span>
   )
