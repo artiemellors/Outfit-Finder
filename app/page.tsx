@@ -444,8 +444,8 @@ export default function Home() {
                   key={tile.label}
                   type="button"
                   onClick={() => runSearch(tile.query)}
-                  className="px-4 py-3 bg-white border border-black/[0.08] rounded
-                             text-sm font-medium text-[#1a1a1a] text-left
+                  className="px-4 py-3 bg-white border border-black/[0.08] rounded-full
+                             text-sm font-light text-[#1a1a1a] text-center
                              transition-all duration-150 cursor-pointer
                              hover:border-[#1768B0] hover:text-[#1768B0]
                              active:scale-[0.98]"
