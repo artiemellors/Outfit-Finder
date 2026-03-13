@@ -351,7 +351,7 @@ export default function Home() {
             onChange={e => setQuery(e.target.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            placeholder={focused ? 'Describe the look you want…' : (typewriter || 'Describe the look you want…')}
+            placeholder={focused ? '' : typewriter}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
                        text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
