@@ -124,6 +124,39 @@ const EXAMPLE_QUERIES: Record<NonNullable<Gender> | 'all', string[]> = {
   ],
 }
 
+const OCCASION_TILES: Record<NonNullable<Gender> | 'all', { label: string; query: string }[]> = {
+  men: [
+    { label: 'Stag Night',      query: 'night out for a stag party' },
+    { label: 'Job Interview',   query: 'smart casual outfit for a job interview' },
+    { label: 'Summer Casual',   query: 'casual summer outfit for men' },
+    { label: 'Gym',             query: 'gym look for a guy' },
+    { label: 'Beach Day',       query: 'beach day with the kids' },
+    { label: 'Streetwear',      query: 'streetwear outfit for men' },
+    { label: 'Workwear',        query: "workwear that doesn't feel boring" },
+    { label: 'Weekend Brunch',  query: 'weekend brunch, something relaxed' },
+  ],
+  women: [
+    { label: 'Job Interview',   query: 'smart casual outfit for a job interview' },
+    { label: 'Gym',             query: 'gym look for a woman' },
+    { label: 'Beach Day',       query: 'beach day with the kids' },
+    { label: 'Date Night',      query: 'date night, a bit dressed up' },
+    { label: 'Winter Layers',   query: 'cosy winter layers' },
+    { label: 'Weekend Brunch',  query: 'weekend brunch, something relaxed' },
+    { label: 'Workwear',        query: "workwear that doesn't feel boring" },
+    { label: 'Garden Party',    query: 'garden party outfit' },
+  ],
+  all: [
+    { label: 'Job Interview',   query: 'smart casual outfit for a job interview' },
+    { label: 'Weekend Brunch',  query: 'weekend brunch, something relaxed' },
+    { label: 'Beach Day',       query: 'beach day with the kids' },
+    { label: 'Date Night',      query: 'date night, a bit dressed up' },
+    { label: 'Night Out',       query: 'night out outfit' },
+    { label: 'Gym',             query: 'gym outfit' },
+    { label: 'Winter Layers',   query: 'cosy winter layers' },
+    { label: 'Workwear',        query: "workwear that doesn't feel boring" },
+  ],
+}
+
 function useTypewriterPlaceholder(paused: boolean, gender: Gender) {
   const [text, setText] = useState('')
   const pausedRef = useRef(paused)
@@ -269,9 +302,9 @@ export default function Home() {
   const [gender, setGender]       = useState<Gender>(null)
   const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0, gender)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!query.trim()) return
+  async function runSearch(q: string) {
+    if (!q.trim()) return
+    setQuery(q)
     setLoading(true)
     setStatuses([])
     setResult(null)
@@ -281,7 +314,7 @@ export default function Home() {
     const res = await fetch('/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, gender }),
+      body: JSON.stringify({ query: q, gender }),
     })
 
     const reader  = res.body!.getReader()
@@ -303,6 +336,11 @@ export default function Home() {
         else if (event.type === 'error')       { setError(event.message!); setLoading(false) }
       }
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    runSearch(query)
   }
 
   return (
@@ -389,6 +427,31 @@ export default function Home() {
             </button>
           ))}
         </div>
+
+        {/* Occasion tiles — visible on empty state only */}
+        {!loading && !result && (
+          <div className="mt-8" style={{ animation: 'fadeUp 0.5s 0.25s ease both', opacity: 0 }}>
+            <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
+              Popular occasions
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {OCCASION_TILES[gender ?? 'all'].map(tile => (
+                <button
+                  key={tile.label}
+                  type="button"
+                  onClick={() => runSearch(tile.query)}
+                  className="px-4 py-3 bg-white border border-black/[0.08] rounded
+                             text-sm font-medium text-[#1a1a1a] text-left
+                             transition-all duration-150 cursor-pointer
+                             hover:border-[#1768B0] hover:text-[#1768B0]
+                             active:scale-[0.98]"
+                >
+                  {tile.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading && <LoadingState statuses={statuses} />}
 
