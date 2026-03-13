@@ -384,7 +384,7 @@ export default function Home() {
 
         <form
           onSubmit={handleSubmit}
-          className="flex w-full bg-white border border-black/[0.08] rounded overflow-hidden
+          className="flex w-full bg-white border border-black/[0.08] rounded-tl-[8px] rounded-bl-[8px]
                      transition-all duration-200 focus-within:border-[#1768B0]
                      focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]"
         >
@@ -426,7 +426,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading}
-            className="shrink-0 px-7 py-[18px] text-base
+            className="shrink-0 px-7 py-[18px] text-base rounded-tr-[8px] rounded-br-[8px]
                        text-white border-none cursor-pointer transition-all
                        hover:brightness-90 active:scale-[0.98]
                        disabled:opacity-50 disabled:cursor-not-allowed"
