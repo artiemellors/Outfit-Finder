@@ -228,10 +228,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
     <div id="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
       <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-0">
-          Style direction
-        </p>
-        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08] mt-3">
+        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08]">
           {outfits.map((outfit, i) => (
             <button
               key={i}

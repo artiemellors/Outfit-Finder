@@ -48,8 +48,7 @@ export default function RefinementChips({ chips, onRefine }: Props) {
         Refine your search
       </p>
       <div className="flex flex-wrap gap-2">
-        {chips.map((chip, i) =>
-          displayed[i].length > 0 ? (
+        {chips.map((chip, i) => (
             <button
               key={chip}
               type="button"
@@ -59,11 +58,11 @@ export default function RefinementChips({ chips, onRefine }: Props) {
                          transition-colors duration-150 cursor-pointer
                          hover:border-[#1768B0] hover:text-[#1768B0]
                          active:scale-[0.98]"
+              style={{ animation: 'fadeUp 0.3s ease both', animationDelay: `${i * 120}ms` }}
             >
               {displayed[i]}
             </button>
-          ) : null
-        )}
+          ))}
       </div>
     </div>
   )
