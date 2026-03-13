@@ -89,16 +89,19 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
             >
               {/* Product card — image */}
-              {p.imageUrl ? (
-                <img
-                  src={p.imageUrl}
-                  alt={p.name}
-                  className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-lg"
-                  style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out`, mixBlendMode: 'multiply' }}
-                />
-              ) : (
-                <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
-              )}
+              <div className="relative">
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="aspect-[4/5] w-full object-cover bg-[--surface2] rounded-lg"
+                    style={{ animation: `imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out` }}
+                  />
+                ) : (
+                  <div className="aspect-[4/5] w-full bg-[--surface2] rounded-lg" />
+                )}
+                <div className="absolute inset-0 rounded-lg bg-[--surface2] pointer-events-none" style={{ mixBlendMode: 'multiply' }} />
+              </div>
               {/* Product card — text content (title, price, link) */}
               <div id="ProductCard-content" className="p-3 flex flex-col flex-1">
                 <p className="text-[14px] font-normal leading-tight line-clamp-2 text-[--text] mb-3">
