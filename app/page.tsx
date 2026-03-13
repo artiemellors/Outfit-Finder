@@ -86,44 +86,9 @@ function useRotatingCopy(phase: Phase) {
   return { copy, visible }
 }
 
-// ─── Typewriter placeholder ──────────────────────────────────────────────────
+// ─── Gender type ─────────────────────────────────────────────────────────────
 
 type Gender = 'men' | 'women' | null
-
-const EXAMPLE_QUERIES: Record<NonNullable<Gender> | 'all', string[]> = {
-  men: [
-    'night out for a stag party',
-    'smart casual for a job interview',
-    'casual summer outfit for a man',
-    'gym look for a guy',
-    'beach day with the kids',
-    'streetwear for a teen boy',
-    'workwear that doesn\'t feel boring',
-    'weekend brunch, something relaxed',
-  ],
-  women: [
-    'smart casual for a job interview',
-    'gym look for a woman',
-    'beach day with the kids',
-    'date night, a bit dressed up',
-    'cosy winter layers',
-    'weekend brunch, something relaxed',
-    'workwear that doesn\'t feel boring',
-    'summer dress for a garden party',
-  ],
-  all: [
-    'night out for a stag party',
-    'smart casual for a job interview',
-    'casual summer outfit for a man',
-    'gym look for a woman',
-    'beach day with the kids',
-    'date night, a bit dressed up',
-    'cosy winter layers',
-    'weekend brunch, something relaxed',
-    'streetwear for a teen boy',
-    'workwear that doesn\'t feel boring',
-  ],
-}
 
 const OCCASION_TILES: Record<NonNullable<Gender> | 'all', { label: string; query: string }[]> = {
   men: [
@@ -156,52 +121,6 @@ const OCCASION_TILES: Record<NonNullable<Gender> | 'all', { label: string; query
     { label: 'Winter Layers',   query: 'cosy winter layers' },
     { label: 'Workwear',        query: "workwear that doesn't feel boring" },
   ],
-}
-
-function useTypewriterPlaceholder(paused: boolean, gender: Gender) {
-  const [text, setText] = useState('')
-  const pausedRef = useRef(paused)
-  const genderRef = useRef(gender)
-  useEffect(() => { pausedRef.current = paused }, [paused])
-  useEffect(() => { genderRef.current = gender }, [gender])
-
-  useEffect(() => {
-    let cancelled = false
-    const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
-
-    async function run() {
-      await sleep(600)
-      const pool = () => EXAMPLE_QUERIES[genderRef.current ?? 'all']
-      const queries = shuffle([...pool()])
-      let qi = 0
-      while (!cancelled) {
-        if (pausedRef.current) { await sleep(200); continue }
-        const q = queries[qi++ % queries.length]
-        for (let i = 1; i <= q.length; i++) {
-          if (cancelled || pausedRef.current) break
-          setText(q.slice(0, i))
-          await sleep(52)
-        }
-        if (cancelled) break
-        await sleep(2400)
-        for (let i = q.length - 1; i >= 0; i--) {
-          if (cancelled || pausedRef.current) break
-          setText(q.slice(0, i))
-          await sleep(22)
-        }
-        if (cancelled) break
-        await sleep(380)
-        if (qi >= queries.length) {
-          queries.splice(0, queries.length, ...shuffle([...pool()]))
-          qi = 0
-        }
-      }
-    }
-    run()
-    return () => { cancelled = true; setText('') }
-  }, [])
-
-  return text
 }
 
 // ─── Loading state ───────────────────────────────────────────────────────────
@@ -300,9 +219,7 @@ export default function Home() {
   const [refinements, setRefinements] = useState<string[] | null>(null)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
-  const [focused, setFocused]     = useState(false)
   const [gender, setGender]       = useState<Gender>(null)
-  const typewriter = useTypewriterPlaceholder(loading || focused || query.length > 0, gender)
 
   async function runSearch(q: string) {
     if (!q.trim()) return
@@ -391,9 +308,7 @@ export default function Home() {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={focused ? '' : typewriter}
+            placeholder=""
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
                        text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
