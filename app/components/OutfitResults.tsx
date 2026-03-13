@@ -231,7 +231,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.3)] mb-3">
           Style direction
         </p>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto sm:flex-wrap scrollbar-hide">
           {outfits.map((outfit, i) => (
             <button
               key={i}
