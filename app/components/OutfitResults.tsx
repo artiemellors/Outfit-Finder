@@ -59,20 +59,17 @@ function ItemCard({
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
-        <div id="ItemCard-image" className="w-28 sm:w-[160px] h-[160px] shrink-0 bg-[#f0f0f0]">
+        <div id="ItemCard-image" className="relative w-28 sm:w-[160px] h-[160px] shrink-0 bg-[#f0f0f0]">
           {product.imageUrl ? (
             <img
               key={idx}
               src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover"
-              style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out', mixBlendMode: 'multiply' }}
+              style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out' }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[10px] text-[rgba(26,26,26,0.3)]">
-              No image
-            </div>
-          )}
+          ) : null}
+          <div className="absolute inset-0 bg-[#f0f0f0] pointer-events-none" style={{ mixBlendMode: 'multiply' }} />
         </div>
 
         {/* ItemCard — content column (meta + price/link) */}
