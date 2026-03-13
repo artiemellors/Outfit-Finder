@@ -65,7 +65,7 @@ function ItemCard({
               key={idx}
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out', mixBlendMode: 'multiply' }}
             />
           ) : null}
