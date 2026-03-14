@@ -8,7 +8,10 @@ const dmSans = DM_Sans({
   variable: '--font-sans',
 })
 
-export const metadata: Metadata = { title: 'Outfit Kurator' }
+export const metadata: Metadata = {
+  title: 'Kmart Kurator',
+  description: 'Find the perfect outfit, home look, kitchen set or party pack — powered by Kmart.',
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,14 +1,7 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { searchKmart, browseCollection, fetchCollections, Product } from '@/lib/kmart-scraper'
-
-const BASE_PROMPT = `You are an outfit curator for Kmart Australia. Given a user's clothing request:
-1. In your FIRST response, call search_kmart and/or browse_collection for ALL categories at once — emit all tool calls together, do not wait between them. Max 5 calls total.
-   - Use browse_collection when a collection id from the provided list is a strong match for the user's request (e.g. "blazers-for-women" for a formal women's look).
-   - Use search_kmart for specific product types not covered by a collection.
-2. Once you have the search results, call present_outfits — do NOT describe outfits in text.
-
-Each product in search results has an "id", "name", "price", and "colour" field. When calling present_outfits, reference products by their id only — do not repeat name, price, or URLs. Provide 2–4 named outfit pairings. For each outfit, group items by category (Top, Bottom, Footwear, etc.) with 3–5 product alternatives per slot. Use the colour field to build cohesive outfits — prefer combinations where colours complement each other (e.g. neutrals together, or a statement colour paired with neutrals). You MUST call present_outfits even if some searches returned no results. Do not use emojis in outfit names or descriptions.`
+import { getCategoryConfig } from '@/lib/category-config'
 
 // Keyword-based gender filter applied at the data layer as a backstop.
 // Kmart product names reliably contain gendered terms we can check against.
@@ -22,17 +15,23 @@ function filterByGender(products: Product[], gender: 'men' | 'women' | null): Pr
 }
 
 export async function POST(req: NextRequest) {
-  const { query, gender } = await req.json() as { query: string; gender: 'men' | 'women' | null }
+  const { query, gender, category } = await req.json() as {
+    query: string
+    gender: 'men' | 'women' | null
+    category?: string
+  }
 
-  // Fetch clothing-relevant collections in parallel with building the prompt
-  const availableCollections = await fetchCollections()
+  const config = getCategoryConfig(category ?? 'outfits')
+
+  // Fetch category-relevant collections in parallel with building the prompt
+  const availableCollections = await fetchCollections(config.collectionKeywords)
   const collectionContext = availableCollections.length > 0
     ? `\n\nAvailable Kmart collections you can browse with browse_collection (id → display name):\n${availableCollections.map(c => `  ${c.id} → ${c.display_name}`).join('\n')}`
     : ''
 
-  const SYSTEM_PROMPT = gender
-    ? `${BASE_PROMPT}${collectionContext}\n\nIMPORTANT: The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — every search query and all outfit suggestions must be for ${gender}'s clothing only. Prefix all search_kmart queries with "${gender === 'men' ? "men's" : "women's"}" unless the user has already specified it.`
-    : `${BASE_PROMPT}${collectionContext}`
+  const SYSTEM_PROMPT = gender && config.showGenderFilter
+    ? `${config.systemPrompt}${collectionContext}\n\nIMPORTANT: The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — every search query and all outfit suggestions must be for ${gender}'s clothing only. Prefix all search_kmart queries with "${gender === 'men' ? "men's" : "women's"}" unless the user has already specified it.`
+    : `${config.systemPrompt}${collectionContext}`
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
@@ -197,8 +196,8 @@ export async function POST(req: NextRequest) {
                   const collectionsResponse = await client.messages.create({
                     model: 'claude-sonnet-4-6',
                     max_tokens: 4096,
-                    system: `You are a fashion merchandiser for a Kmart outfit finder app.
-A user searched for: "${query}".${gender ? ` The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — only include ${gender}'s clothing.` : ''}
+                    system: `You are a product merchandiser for a Kmart ${config.label} finder app.
+A user searched for: "${query}".${gender && config.showGenderFilter ? ` The user is shopping for ${gender === 'men' ? 'a man' : 'a woman'} — only include ${gender}'s products.` : ''}
 Group these products into 2–3 themed collections that complement that search.
 Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
 Aim for ${targetPerCollection} products per collection. Every product should appear in exactly one collection — distribute them all.
@@ -273,13 +272,13 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
             const t0 = Date.now()
             const results = await Promise.all(
               allFetchBlocks.map(({ type, label }) =>
-                type === 'search' ? searchKmart(label) : browseCollection(label)
+                type === 'search' ? searchKmart(label, config.categoryFilter) : browseCollection(label)
               )
             )
             console.log(`[Search] All ${allFetchBlocks.length} fetches done in ${Date.now() - t0}ms`)
 
             const toolResults: Anthropic.ToolResultBlockParam[] = allFetchBlocks.map(({ block, type, label }, i) => {
-              const allProducts = filterByGender(results[i], gender)
+              const allProducts = config.showGenderFilter ? filterByGender(results[i], gender) : results[i]
               const products = allProducts.slice(0, 10)  // Claude sees top 10
               const si = searchIndex++
               console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)

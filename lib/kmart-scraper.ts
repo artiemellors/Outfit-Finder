@@ -62,23 +62,7 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
   })
 }
 
-// Restrict to adult categories — excludes Boys Clothing, Girls Clothing, Baby, Schoolwear, Kids Shoes
-const ADULT_CATEGORY_FILTER =
-  '&filters%5BCategory%5D%5B%5D=Clothing' +
-  '&filters%5BCategory%5D%5B%5D=Activewear' +
-  '&filters%5BCategory%5D%5B%5D=Shoes'
-
-const CLOTHING_KEYWORDS = [
-  'dress', 'shirt', 'pants', 'jacket', 'shoes', 'footwear', 'skirt', 'jeans',
-  'shorts', 'blazer', 'tracksuit', 'leggings', 'swimwear', 'sleepwear', 'top',
-  'boot', 'heel', 'sneaker', 'apparel', 'clothing', 'fashion', 'wear', 'denim',
-  'coat', 'suit', 'tshirt', 't-shirt', 'hoodie', 'jumper', 'cardigan', 'blouse',
-  'vest', 'sock', 'hat', 'cap', 'bag', 'tote', 'sandal', 'flat', 'loafer',
-  'mule', 'slipper', 'flannel', 'cargo', 'bucket', 'linen', 'cotton', 'hi-vis',
-  'mens', 'womens', 'men\'s', 'women\'s', 'hi vis', 'everlast',
-]
-
-export async function fetchCollections(): Promise<Collection[]> {
+export async function fetchCollections(keywords: string[]): Promise<Collection[]> {
   const url =
     `https://ac.cnstrc.com/browse/collections` +
     `?key=key_GZTqlLr41FS2p7AY&c=ciojs-client-2.71.1&num_results_per_page=200`
@@ -90,7 +74,7 @@ export async function fetchCollections(): Promise<Collection[]> {
   return all
     .filter(c => {
       const text = `${c.id} ${c.display_name}`.toLowerCase()
-      return CLOTHING_KEYWORDS.some(kw => text.includes(kw))
+      return keywords.some(kw => text.includes(kw))
     })
     .map(c => ({ id: c.id, display_name: c.display_name }))
 }
@@ -112,11 +96,11 @@ export async function browseCollection(collectionId: string): Promise<Product[]>
   return products
 }
 
-export async function searchKmart(query: string): Promise<Product[]> {
+export async function searchKmart(query: string, categoryFilter = ''): Promise<Product[]> {
   const url =
     `https://ac.cnstrc.com/search/${encodeURIComponent(query)}` +
     `?key=key_GZTqlLr41FS2p7AY&c=ciojs-client-2.71.1&num_results_per_page=24` +
-    ADULT_CATEGORY_FILTER
+    categoryFilter
   console.log(`\n[Search] ${query}`)
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) {
