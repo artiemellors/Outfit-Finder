@@ -8,11 +8,12 @@ interface Props {
 }
 
 export default function RefinementChips({ chips, onRefine }: Props) {
-  // Each entry is the characters revealed so far for that chip
   const [displayed, setDisplayed] = useState<string[]>(() => chips.map(() => ''))
+  const [complete, setComplete]   = useState<boolean[]>(() => chips.map(() => false))
 
   useEffect(() => {
     setDisplayed(chips.map(() => ''))
+    setComplete(chips.map(() => false))
     let cancelled = false
     const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
@@ -32,6 +33,8 @@ export default function RefinementChips({ chips, onRefine }: Props) {
           })
           await sleep(35)
         }
+        if (cancelled) return
+        setComplete(prev => { const next = [...prev]; next[i] = true; return next })
       }
     }
 
@@ -47,22 +50,25 @@ export default function RefinementChips({ chips, onRefine }: Props) {
       <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.35)] mb-2.5">
         Refine your search
       </p>
-      <div className="flex flex-wrap gap-2">
-        {chips.map((chip, i) => (
+      <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible scrollbar-hide gap-2 pb-1">
+        {chips.map((chip, i) =>
+          displayed[i].length > 0 ? (
             <button
               key={chip}
               type="button"
               onClick={() => onRefine(chip)}
-              className="px-4 py-2 bg-white border border-black/[0.08] rounded-full
+              className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
                          text-sm text-[#1a1a1a] whitespace-nowrap
                          transition-colors duration-150 cursor-pointer
                          hover:border-[#1768B0] hover:text-[#1768B0]
                          active:scale-[0.98]"
-              style={{ animation: 'fadeUp 0.3s ease both', animationDelay: `${i * 120}ms` }}
+              style={{ animation: 'chipIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
             >
               {displayed[i]}
+              {!complete[i] && <span className="chip-cursor">▋</span>}
             </button>
-          ))}
+          ) : null
+        )}
       </div>
     </div>
   )

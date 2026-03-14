@@ -79,6 +79,25 @@ body {
   to   { opacity: 1; transform: translateY(0);    }
 }
 
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.75) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+.chip-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  font-size: 0.65em;
+  vertical-align: middle;
+  color: rgba(26, 26, 26, 0.45);
+  animation: cursorBlink 0.8s step-end infinite;
+}
+
 @keyframes fadeDown {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0);    }
