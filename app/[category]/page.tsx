@@ -158,6 +158,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [gender, setGender]       = useState<Gender>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Outfit category: gender-keyed tiles; others: flat tile list
   const genderedTileMap = config.showGenderFilter
@@ -230,8 +231,8 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             Kmart <span style={{ color: 'var(--accent)' }}>Kurator</span>
           </a>
 
-          {/* Category nav */}
-          <nav className="flex overflow-x-auto scrollbar-hide gap-0.5 flex-1">
+          {/* Category nav — desktop only */}
+          <nav className="hidden sm:flex gap-0.5 flex-1">
             {CATEGORY_SLUGS.map(slug => {
               const cfg = getCategoryConfig(slug)
               const isActive = slug === categorySlug
@@ -256,8 +257,62 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
           <span className="hidden sm:block text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(26,26,26,0.4)] shrink-0">
             Powered by Kmart
           </span>
+
+          {/* Hamburger — mobile only */}
+          <button
+            className="sm:hidden ml-auto p-2 text-[#1a1a1a]"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+          >
+            <i className="fa-solid fa-bars text-lg" />
+          </button>
         </div>
       </header>
+
+      {/* Mobile nav drawer — backdrop */}
+      <div
+        className="fixed inset-0 z-30 bg-black/40 transition-opacity duration-300 sm:hidden"
+        style={{ opacity: drawerOpen ? 1 : 0, pointerEvents: drawerOpen ? 'auto' : 'none' }}
+        onClick={() => setDrawerOpen(false)}
+      />
+
+      {/* Mobile nav drawer — panel */}
+      <div
+        className="fixed top-0 right-0 z-40 h-full w-64 bg-white shadow-xl flex flex-col sm:hidden
+                   transition-transform duration-300 ease-out"
+        style={{ transform: drawerOpen ? 'translateX(0)' : 'translateX(100%)' }}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-6 h-20 border-b border-black/[0.06]">
+          <span className="font-sans text-sm font-bold tracking-tight text-[#1a1a1a]">
+            Kmart <span style={{ color: 'var(--accent)' }}>Kurator</span>
+          </span>
+          <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-2">
+            <i className="fa-solid fa-xmark text-lg text-[rgba(26,26,26,0.5)]" />
+          </button>
+        </div>
+
+        {/* Drawer nav links */}
+        <nav className="flex flex-col p-4 gap-1">
+          {CATEGORY_SLUGS.map(slug => {
+            const cfg = getCategoryConfig(slug)
+            const isActive = slug === categorySlug
+            return (
+              <a
+                key={slug}
+                href={`/${slug}`}
+                className="px-4 py-3 rounded text-sm font-semibold tracking-wide transition-all"
+                style={isActive
+                  ? { background: 'rgba(23,104,176,0.08)', color: 'var(--accent)' }
+                  : { color: '#1a1a1a' }
+                }
+              >
+                {cfg.label}
+              </a>
+            )
+          })}
+        </nav>
+      </div>
 
       {/* Hero + search */}
       <section
