@@ -220,6 +220,12 @@ export default function Home() {
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
   const [gender, setGender]       = useState<Gender>(null)
+  const [shuffledOccasions, setShuffledOccasions] = useState(
+    () => shuffle([...OCCASION_TILES['all']])
+  )
+  useEffect(() => {
+    setShuffledOccasions(shuffle([...OCCASION_TILES[gender ?? 'all']]))
+  }, [gender])
 
   async function runSearch(q: string) {
     if (!q.trim()) return
@@ -377,14 +383,14 @@ export default function Home() {
             <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
               Popular occasions
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {OCCASION_TILES[gender ?? 'all'].map(tile => (
+            <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible scrollbar-hide gap-2 pb-1">
+              {shuffledOccasions.map(tile => (
                 <button
                   key={tile.label}
                   type="button"
                   onClick={() => runSearch(tile.query)}
-                  className="px-4 py-3 bg-white border border-black/[0.08] rounded-full
-                             text-sm font-light text-[#1a1a1a] text-center
+                  className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
+                             text-sm font-light text-[#1a1a1a]
                              transition-all duration-150 cursor-pointer
                              hover:border-[#1768B0] hover:text-[#1768B0]
                              active:scale-[0.98]"
