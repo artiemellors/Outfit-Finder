@@ -50,14 +50,14 @@ export default function RefinementChips({ chips, onRefine }: Props) {
       <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.35)] mb-2.5">
         Refine your search
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible scrollbar-hide gap-2 pb-1">
         {chips.map((chip, i) =>
           displayed[i].length > 0 ? (
             <button
               key={chip}
               type="button"
               onClick={() => onRefine(chip)}
-              className="px-4 py-2 bg-white border border-black/[0.08] rounded-full
+              className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
                          text-sm text-[#1a1a1a] whitespace-nowrap
                          transition-colors duration-150 cursor-pointer
                          hover:border-[#1768B0] hover:text-[#1768B0]
