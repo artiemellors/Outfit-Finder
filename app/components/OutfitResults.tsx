@@ -133,7 +133,11 @@ function ItemCard({
   )
 }
 
-function OutfitView({ outfit }: { outfit: Outfit }) {
+function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit' }: {
+  outfit: Outfit
+  groupLabel?: string
+  totalLabel?: string
+}) {
   const [indices, setIndices] = useState<number[]>(() => outfit.items.map(() => 0))
   const [priceFlashing, setPriceFlashing] = useState(false)
 
@@ -159,7 +163,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
       <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-lg p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
-          Selected Look
+          {groupLabel}
         </p>
         {/* Summary card — accent rule */}
         <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
@@ -175,7 +179,7 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
         <div id="OutfitView-summary-total" className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[rgba(26,26,26,0.35)] mb-1">
-              Complete outfit
+              {totalLabel}
             </p>
             <div
               style={{
@@ -221,7 +225,15 @@ function OutfitView({ outfit }: { outfit: Outfit }) {
   )
 }
 
-export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
+export default function OutfitResults({
+  outfits,
+  groupLabel,
+  totalLabel,
+}: {
+  outfits: Outfit[]
+  groupLabel?: string
+  totalLabel?: string
+}) {
   const [activeIdx, setActiveIdx] = useState(0)
 
   return (
@@ -246,7 +258,7 @@ export default function OutfitResults({ outfits }: { outfits: Outfit[] }) {
         </div>
       </div>
 
-      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} />
+      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} />
     </div>
   )
 }
