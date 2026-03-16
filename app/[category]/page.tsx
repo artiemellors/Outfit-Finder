@@ -230,11 +230,8 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-8 h-20 flex items-center gap-3">
           {/* Logo */}
-          <a href="/outfits" className="flex items-center gap-3 shrink-0">
+          <a href="/outfits" className="flex items-center shrink-0">
             <Image src="/Logo.svg" alt="Kmart" width={88} height={28} priority />
-            <span className="font-sans text-xl font-bold tracking-tight" style={{ color: 'var(--accent)' }}>
-              Kurator
-            </span>
           </a>
 
           {/* Tagline — desktop only */}
@@ -268,11 +265,8 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-6 h-20 border-b border-black/[0.06]">
-          <a href="/outfits" className="flex items-center gap-2 shrink-0">
+          <a href="/outfits" className="flex items-center shrink-0">
             <Image src="/Logo.svg" alt="Kmart" width={70} height={22} />
-            <span className="font-sans text-sm font-bold tracking-tight" style={{ color: 'var(--accent)' }}>
-              Kurator
-            </span>
           </a>
           <button onClick={() => setDrawerOpen(false)} aria-label="Close menu" className="p-2">
             <i className="fa-solid fa-xmark text-lg text-[rgba(26,26,26,0.5)]" />
