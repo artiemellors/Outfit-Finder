@@ -21,7 +21,7 @@ function SkeletonCard() {
   if (useKosmos) {
     return (
       <div className="flex flex-col">
-        <div className="skeleton aspect-[4/5] w-full bg-[#F4F5F6]" />
+        <div className="skeleton aspect-[4/5] w-full rounded-[8px] bg-[#F4F5F6]" />
         <div className="pt-2 space-y-1.5">
           <div className="skeleton h-3 w-full rounded" />
           <div className="skeleton h-3 w-2/3 rounded" />
@@ -114,7 +114,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 className="flex flex-col group"
                 style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
               >
-                <div className="relative bg-[#F4F5F6] overflow-hidden">
+                <div className="relative bg-white overflow-hidden rounded-[8px]">
                   {p.imageUrl ? (
                     <img
                       src={p.imageUrl}
@@ -125,10 +125,6 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   ) : (
                     <div className="aspect-[4/5] w-full" />
                   )}
-                  <span className="absolute bottom-2 left-2 bg-[#1768B0] text-white
-                                   text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-                    anko
-                  </span>
                 </div>
                 <div className="pt-2 pb-3 flex flex-col">
                   <p className="text-[12px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-1">
