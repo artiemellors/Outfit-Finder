@@ -79,13 +79,13 @@ function ItemCard({
                style={{ color: 'var(--accent)' }}>
               {item.category}
             </p>
-            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[#333]">
+            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text]">
               {product.name}
             </h3>
             {product.colour && (
-              <p className="text-[11px] text-[rgba(26,26,26,0.4)] mb-1.5">{product.colour}</p>
+              <p className="text-[11px] text-[--text-muted] mb-1.5">{product.colour}</p>
             )}
-            <p className="text-xs leading-relaxed text-[rgba(26,26,26,0.5)] line-clamp-2">
+            <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
               {item.description}
             </p>
             {/* ItemCard — alternative nav (prev/next arrows) */}
@@ -93,17 +93,17 @@ function ItemCard({
               <button
                 onClick={() => onIdxChange((idx - 1 + count) % count)}
                 className="w-7 h-7 border border-black/[0.08] rounded-full flex items-center justify-center
-                           text-sm text-[rgba(26,26,26,0.5)] hover:border-black/30 hover:text-[#1a1a1a]
+                           text-sm text-[--text-muted] hover:border-black/30 hover:text-[--text]
                            transition-all"
                 aria-label="Previous option"
               >‹</button>
-              <span className="text-[11px] text-[rgba(26,26,26,0.3)] tabular-nums">
+              <span className="text-[11px] text-[--text-subtle] tabular-nums">
                 {idx + 1} / {count}
               </span>
               <button
                 onClick={() => onIdxChange((idx + 1) % count)}
                 className="w-7 h-7 border border-black/[0.08] rounded-full flex items-center justify-center
-                           text-sm text-[rgba(26,26,26,0.5)] hover:border-black/30 hover:text-[#1a1a1a]
+                           text-sm text-[--text-muted] hover:border-black/30 hover:text-[--text]
                            transition-all"
                 aria-label="Next option"
               >›</button>
@@ -115,7 +115,7 @@ function ItemCard({
                           mt-3 sm:mt-0 sm:gap-4 shrink-0">
             <KmartPrice
               price={product.price}
-              className="font-sans text-2xl font-bold text-[#1a1a1a] leading-none"
+              className="font-sans text-2xl font-bold text-[--text] leading-none"
             />
             <a
               href={product.productUrl}
@@ -162,23 +162,23 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
       {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
       <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-lg p-7 lg:sticky lg:top-[172px]"
            style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
-        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[rgba(26,26,26,0.35)] mb-3">
+        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
           {groupLabel}
         </p>
         {/* Summary card — accent rule */}
         <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
 
-        <h2 className="font-sans text-2xl font-bold leading-snug text-[#1a1a1a] mb-3">
+        <h2 className="font-sans text-2xl font-bold leading-snug text-[--text] mb-3">
           {outfit.name}
         </h2>
-        <p className="text-sm leading-relaxed text-[rgba(26,26,26,0.5)] mb-7">
+        <p className="text-sm leading-relaxed text-[--text-muted] mb-7">
           {outfit.description}
         </p>
 
         {/* Summary card — total price row */}
         <div id="OutfitView-summary-total" className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
           <div>
-            <p className="text-[10px] tracking-[0.18em] uppercase text-[rgba(26,26,26,0.35)] mb-1">
+            <p className="text-[10px] tracking-[0.18em] uppercase text-[--text-subtle] mb-1">
               {totalLabel}
             </p>
             <div
@@ -193,7 +193,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
               />
             </div>
           </div>
-          <div className="text-xs text-[rgba(26,26,26,0.5)]">
+          <div className="text-xs text-[--text-muted]">
             {outfit.items.length} pieces
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function OutfitResults({
   return (
     <div id="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
-      <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[#f5f5f5] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
+      <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[--bg] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
         <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08]">
           {outfits.map((outfit, i) => (
             <button
@@ -248,8 +248,8 @@ export default function OutfitResults({
               className={`px-5 pb-3 pt-1 text-[11px] font-semibold tracking-[0.12em]
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
-                            ? 'border-[#1768B0] text-[#1768B0]'
-                            : 'border-transparent text-[rgba(26,26,26,0.4)] hover:text-[#1a1a1a]'
+                            ? 'border-[--accent] text-[--accent]'
+                            : 'border-transparent text-[--text-muted] hover:text-[--text]'
                           }`}
             >
               {outfit.name}

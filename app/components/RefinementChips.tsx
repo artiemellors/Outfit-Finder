@@ -47,7 +47,7 @@ export default function RefinementChips({ chips, onRefine }: Props) {
       className="max-w-4xl mx-auto px-4 sm:px-8 pb-4"
       style={{ animation: 'fadeUp 0.3s ease both' }}
     >
-      <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[rgba(26,26,26,0.35)] mb-2.5">
+      <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[--text-subtle] mb-2.5">
         Refine your search
       </p>
       <div className="flex flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-x-visible scrollbar-hide gap-2 pb-1">
@@ -58,9 +58,9 @@ export default function RefinementChips({ chips, onRefine }: Props) {
               type="button"
               onClick={() => onRefine(chip)}
               className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
-                         text-sm text-[#1a1a1a] whitespace-nowrap
+                         text-sm text-[--text] whitespace-nowrap
                          transition-colors duration-150 cursor-pointer
-                         hover:border-[#1768B0] hover:text-[#1768B0]
+                         hover:border-[--accent] hover:text-[--accent]
                          active:scale-[0.98]"
               style={{ animation: 'chipIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
             >

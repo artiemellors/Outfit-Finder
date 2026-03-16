@@ -15,6 +15,8 @@
   --surface: #ffffff;
   --surface2: #f0f0f0;
   --bg: #f5f5f5;
+  --skeleton-base: #ebebeb;
+  --skeleton-shine: #e0e0e0;
 }
 
 body {
@@ -69,7 +71,7 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #ebebeb 25%, #e0e0e0 50%, #ebebeb 75%);
+  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
   background-size: 600px 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -94,7 +96,7 @@ body {
   margin-left: 2px;
   font-size: 0.65em;
   vertical-align: middle;
-  color: rgba(26, 26, 26, 0.45);
+  color: var(--text-muted);
   animation: cursorBlink 0.8s step-end infinite;
 }
 
