@@ -103,7 +103,7 @@ function ItemCard({
             {product.name}
           </h3>
           {/* always rendered to reserve vertical space; invisible when no colour */}
-          <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+          <p className={`text-[11px] text-[--text-subtle] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
             {product.colour || '\u00a0'}
           </p>
           <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
