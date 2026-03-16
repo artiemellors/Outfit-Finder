@@ -430,11 +430,10 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                   key={tile.label}
                   type="button"
                   onClick={() => runSearch(tile.query)}
-                  className={`flex-shrink-0 px-4 py-2 bg-white transition-all duration-150 cursor-pointer
-                             hover:border-[#1768B0] hover:text-[#1768B0] active:scale-[0.98]
+                  className={`flex-shrink-0 px-4 py-2 bg-white transition-all duration-150 cursor-pointer active:scale-[0.98]
                              ${useKosmos
-                               ? 'border border-[--border-soft] rounded text-xs font-normal text-[#1a1a1a]'
-                               : 'border border-black/[0.08] rounded-full text-sm font-light text-[#1a1a1a]'
+                               ? 'border border-[#1768B0] rounded-full text-sm font-normal text-[#1768B0] hover:bg-[#1768B0] hover:text-white'
+                               : 'border border-black/[0.08] rounded-full text-sm font-light text-[#1a1a1a] hover:border-[#1768B0] hover:text-[#1768B0]'
                              }`}
                 >
                   {tile.label}
