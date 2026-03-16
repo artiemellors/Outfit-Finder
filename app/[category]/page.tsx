@@ -221,7 +221,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-white">
       {/* Sticky header */}
       <header
         className="sticky top-0 z-20 bg-white border-b border-black/[0.06]"
