@@ -82,10 +82,10 @@ export function ProductCollections({ collections }: { collections: ProductCollec
               className={`px-4 py-1.5 text-[13px] border transition-colors whitespace-nowrap shrink-0
                 ${useKosmos ? 'rounded' : 'rounded-full'}
                 ${i === activeTab
-                  ? 'border-[#1768B0] text-[#1768B0] bg-white'
+                  ? 'border-[#1768B0] text-[#1768B0] bg-white font-medium'
                   : useKosmos
-                    ? 'border-black/[0.15] text-[#1a1a1a] bg-white hover:border-[#1768B0] hover:text-[#1768B0]'
-                    : 'border-black/[0.08] text-[--text] bg-white hover:border-black/20'
+                    ? 'border-black/[0.15] text-[#909090] bg-white font-normal hover:border-[#1768B0] hover:text-[#1768B0]'
+                    : 'border-black/[0.08] text-[#909090] bg-white font-normal hover:border-black/20'
                 }`}
             >
               {col.name}
