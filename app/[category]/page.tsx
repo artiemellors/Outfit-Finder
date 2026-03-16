@@ -325,8 +325,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
 
         <h1 className="font-sans font-bold leading-[1.1] mb-10 max-w-[640px] text-[#1a1a1a]"
             style={{ fontSize: useKosmos ? 'clamp(24px, 4vw, 40px)' : 'clamp(28px, 5vw, 48px)' }}>
-          {config.heroHeadline.replace('instantly.', '')}
-          <span style={{ color: 'var(--accent)' }}>instantly.</span>
+          {config.heroHeadline}
         </h1>
 
         <form
