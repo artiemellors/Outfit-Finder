@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 
+const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
+
 export interface Product {
   name: string
   price: string
@@ -28,7 +30,6 @@ function parsePrice(price: string): number {
 
 /** Renders a Kmart-style price with a superscript dollar sign. */
 function KmartPrice({ price, className = '' }: { price: string; className?: string }) {
-  // Strip leading $ and render it as a superscript
   const stripped = price.startsWith('$') ? price.slice(1) : price
   return (
     <span className={className}>
@@ -55,7 +56,8 @@ function ItemCard({
   return (
     <div
       id="ItemCard"
-      className="bg-white border border-black/[0.08] rounded-lg overflow-hidden flex gap-4 sm:gap-6"
+      className={`bg-white rounded-lg overflow-hidden flex gap-4 sm:gap-6
+        ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
@@ -66,7 +68,10 @@ function ItemCard({
               src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover"
-              style={{ animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out', mixBlendMode: 'multiply' }}
+              style={{
+                animation: 'imgFadeIn 180ms ease-out, imgJiggle 350ms ease-out',
+                ...(useKosmos ? {} : { mixBlendMode: 'multiply' as const }),
+              }}
             />
           ) : null}
         </div>
@@ -83,7 +88,14 @@ function ItemCard({
               {product.name}
             </h3>
             {product.colour && (
-              <p className="text-[11px] text-[--text-muted] mb-1.5">{product.colour}</p>
+              useKosmos ? (
+                <p className="text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
+                  {product.colour}
+                </p>
+              ) : (
+                <p className="text-[11px] text-[--text-muted] mb-1.5">{product.colour}</p>
+              )
             )}
             <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
               {item.description}
@@ -117,16 +129,36 @@ function ItemCard({
               price={product.price}
               className="font-sans text-2xl font-bold text-[--text] leading-none"
             />
-            <a
-              href={product.productUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] font-semibold flex items-center gap-1
-                         hover:underline transition-all"
-              style={{ color: 'var(--accent)' }}
-            >
-              View at Kmart <span className="text-[9px]">↗</span>
-            </a>
+            {useKosmos ? (
+              <a
+                href={product.productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold px-3 py-1.5 rounded border transition-all"
+                style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'var(--accent)'
+                  e.currentTarget.style.color = '#fff'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = 'var(--accent)'
+                }}
+              >
+                Shop ↗
+              </a>
+            ) : (
+              <a
+                href={product.productUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-semibold flex items-center gap-1
+                           hover:underline transition-all"
+                style={{ color: 'var(--accent)' }}
+              >
+                View at Kmart <span className="text-[9px]">↗</span>
+              </a>
+            )}
           </div>
         </div>
     </div>
@@ -156,16 +188,18 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
     }
   }, [total])
 
-  // OutfitView: two-column layout (summary card left, items list right)
   return (
     <div id="OutfitView" className="grid gap-6 items-start grid-cols-1 lg:grid-cols-[300px_1fr]">
-      {/* OutfitView — summary card (sticky sidebar: name, description, total price, CTA) */}
-      <div id="OutfitView-summary" className="bg-white border border-black/[0.08] rounded-lg p-7 lg:sticky lg:top-[172px]"
-           style={{ animation: 'fadeUp 0.5s 60ms ease both' }}>
+      {/* OutfitView — summary card (sticky sidebar) */}
+      <div
+        id="OutfitView-summary"
+        className={`bg-white rounded-lg p-7 lg:sticky lg:top-[172px]
+          ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
+        style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
+      >
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
           {groupLabel}
         </p>
-        {/* Summary card — accent rule */}
         <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
 
         <h2 className="font-sans text-2xl font-bold leading-snug text-[--text] mb-3">
@@ -176,7 +210,11 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         </p>
 
         {/* Summary card — total price row */}
-        <div id="OutfitView-summary-total" className="flex items-end justify-between pt-5 border-t border-black/[0.08] mb-6">
+        <div
+          id="OutfitView-summary-total"
+          className={`flex items-end justify-between pt-5 mb-6
+            ${useKosmos ? 'border-t border-[--border-soft]' : 'border-t border-black/[0.08]'}`}
+        >
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[--text-subtle] mb-1">
               {totalLabel}
@@ -209,7 +247,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         </button>
       </div>
 
-      {/* OutfitView — items list (one ItemCard per outfit slot) */}
+      {/* OutfitView — items list */}
       <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
         {outfit.items.map((item, i) => (
           <ItemCard
@@ -240,7 +278,8 @@ export default function OutfitResults({
     <div id="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
       <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[--bg] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
-        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08]">
+        <div className={`flex gap-0 overflow-x-auto scrollbar-hide border-b
+          ${useKosmos ? 'border-[--border-soft]' : 'border-black/[0.08]'}`}>
           {outfits.map((outfit, i) => (
             <button
               key={i}
@@ -248,7 +287,9 @@ export default function OutfitResults({
               className={`px-5 pb-3 pt-1 text-[11px] font-semibold tracking-[0.12em]
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
-                            ? 'border-[--accent] text-[--accent]'
+                            ? useKosmos
+                              ? 'border-[--brand-red] text-[--text]'
+                              : 'border-[--accent] text-[--accent]'
                             : 'border-transparent text-[--text-muted] hover:text-[--text]'
                           }`}
             >

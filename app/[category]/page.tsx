@@ -142,6 +142,8 @@ function LoadingState({ statuses, phaseCopy }: { statuses: string[]; phaseCopy: 
 
 type Gender = 'men' | 'women' | null
 
+const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
+
 export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category: categorySlug } = use(params)
   const config = getCategoryConfig(categorySlug)
@@ -225,36 +227,24 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
         className="sticky top-0 z-20 bg-white border-b border-black/[0.06]"
         style={{ animation: 'fadeDown 0.6s ease both' }}
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-20 flex items-center gap-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-20 flex items-center gap-3">
+          {/* K mark — Kmart brand red circle */}
+          {useKosmos && (
+            <span
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[15px] font-bold shrink-0"
+              style={{ background: 'var(--brand-red)' }}
+            >
+              K
+            </span>
+          )}
+
           {/* Brand */}
-          <a href="/outfits" className="font-sans text-xl font-bold tracking-tight text-[#1a1a1a] shrink-0 mr-2">
+          <a href="/outfits" className="font-sans text-xl font-bold tracking-tight text-[#1a1a1a] shrink-0">
             Kmart <span style={{ color: 'var(--accent)' }}>Kurator</span>
           </a>
 
-          {/* Category nav — desktop only */}
-          <nav className="hidden sm:flex gap-0.5 flex-1">
-            {CATEGORY_SLUGS.map(slug => {
-              const cfg = getCategoryConfig(slug)
-              const isActive = slug === categorySlug
-              return (
-                <a
-                  key={slug}
-                  href={`/${slug}`}
-                  className="px-3 py-1.5 text-[10px] font-semibold tracking-[0.16em] uppercase rounded
-                             whitespace-nowrap transition-all duration-150"
-                  style={isActive
-                    ? { background: 'rgba(23,104,176,0.08)', color: 'var(--accent)' }
-                    : { color: 'rgba(26,26,26,0.45)' }
-                  }
-                >
-                  {cfg.label}
-                </a>
-              )
-            })}
-          </nav>
-
           {/* Tagline — desktop only */}
-          <span className="hidden sm:block text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(26,26,26,0.4)] shrink-0">
+          <span className="hidden sm:block ml-auto text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(26,26,26,0.4)] shrink-0">
             Powered by Kmart
           </span>
 
@@ -320,32 +310,36 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
         style={{ animation: 'fadeUp 0.7s 0.1s ease both' }}
       >
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="block w-6 h-px" style={{ background: 'var(--accent)' }} />
+          {!useKosmos && <span className="block w-6 h-px" style={{ background: 'var(--accent)' }} />}
           <span className="text-[10px] font-semibold tracking-[0.25em] uppercase" style={{ color: 'var(--accent)' }}>
             {config.heroSubline}
           </span>
         </div>
 
         <h1 className="font-sans font-bold leading-[1.1] mb-10 max-w-[640px] text-[#1a1a1a]"
-            style={{ fontSize: 'clamp(28px, 5vw, 48px)' }}>
+            style={{ fontSize: useKosmos ? 'clamp(24px, 4vw, 40px)' : 'clamp(28px, 5vw, 48px)' }}>
           {config.heroHeadline.replace('instantly.', '')}
           <span style={{ color: 'var(--accent)' }}>instantly.</span>
         </h1>
 
         <form
           onSubmit={handleSubmit}
-          className="flex w-full bg-white border border-black/[0.08] rounded-tl-[8px] rounded-bl-[8px]
-                     transition-all duration-200 focus-within:border-[#1768B0]
-                     focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]"
+          className={`flex w-full bg-white border transition-all duration-200
+                      focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]
+                      ${useKosmos
+                        ? 'border-[--border-soft] rounded-full focus-within:border-[#1768B0] shadow-sm'
+                        : 'border-black/[0.08] rounded-tl-[8px] rounded-bl-[8px] focus-within:border-[#1768B0]'
+                      }`}
         >
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={config.searchPlaceholder}
             disabled={loading}
-            className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
+            className={`flex-1 min-w-0 bg-transparent border-none outline-none py-[18px]
                        text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
-                       disabled:opacity-50"
+                       disabled:opacity-50
+                       ${useKosmos ? 'px-5 rounded-full' : 'px-6'}`}
           />
 
           {/* Gender segmented control — desktop, outfits only */}
@@ -373,17 +367,31 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             </>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="shrink-0 px-7 py-[18px] text-base rounded-tr-[8px] rounded-br-[8px]
-                       text-white border-none cursor-pointer transition-all
-                       hover:brightness-90 active:scale-[0.98]
-                       disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'var(--accent)' }}
-          >
-            <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
-          </button>
+          {useKosmos ? (
+            <button
+              type="submit"
+              disabled={loading}
+              className="shrink-0 w-12 h-12 m-1 rounded-full text-white flex items-center justify-center
+                         border-none cursor-pointer transition-all
+                         hover:brightness-90 active:scale-[0.98]
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'var(--brand-red)' }}
+            >
+              <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={loading}
+              className="shrink-0 px-7 py-[18px] text-base rounded-tr-[8px] rounded-br-[8px]
+                         text-white border-none cursor-pointer transition-all
+                         hover:brightness-90 active:scale-[0.98]
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'var(--accent)' }}
+            >
+              <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
+            </button>
+          )}
         </form>
 
         {/* Gender toggle — mobile, outfits only */}
@@ -420,11 +428,12 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                   key={tile.label}
                   type="button"
                   onClick={() => runSearch(tile.query)}
-                  className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
-                             text-sm font-light text-[#1a1a1a]
-                             transition-all duration-150 cursor-pointer
-                             hover:border-[#1768B0] hover:text-[#1768B0]
-                             active:scale-[0.98]"
+                  className={`flex-shrink-0 px-4 py-2 bg-white transition-all duration-150 cursor-pointer
+                             hover:border-[#1768B0] hover:text-[#1768B0] active:scale-[0.98]
+                             ${useKosmos
+                               ? 'border border-[--border-soft] rounded text-xs font-normal text-[#1a1a1a]'
+                               : 'border border-black/[0.08] rounded-full text-sm font-light text-[#1a1a1a]'
+                             }`}
                 >
                   {tile.label}
                 </button>
