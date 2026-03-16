@@ -65,9 +65,8 @@ function ItemCard({
         href={product.productUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={`relative bg-white rounded-lg flex gap-4 sm:gap-6 min-h-[130px] sm:min-h-[148px]
-          cursor-pointer transition-shadow duration-200 hover:shadow-md
-          ${useKosmos ? 'border border-[#CDD1D5] hover:border-[#aab0b8]' : 'border border-black/[0.08] hover:border-black/20'}`}
+        className="relative bg-white rounded-lg flex gap-4 sm:gap-6 min-h-[130px] sm:min-h-[148px]
+          cursor-pointer transition-shadow duration-200 hover:shadow-md border border-black/[0.08] hover:border-black/20"
       >
         {/* left arrow — centred on left card edge, half overflowing */}
         {count > 1 && (
@@ -104,16 +103,9 @@ function ItemCard({
             {product.name}
           </h3>
           {/* always rendered to reserve vertical space; invisible when no colour */}
-          {useKosmos ? (
-            <p className={`text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5 ${product.colour ? '' : 'invisible'}`}>
-              <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
-              {product.colour || '\u00a0'}
-            </p>
-          ) : (
-            <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
-              {product.colour || '\u00a0'}
-            </p>
-          )}
+          <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+            {product.colour || '\u00a0'}
+          </p>
           <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
             {item.description}
           </p>
