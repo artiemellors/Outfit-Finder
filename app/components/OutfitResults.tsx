@@ -56,8 +56,7 @@ function ItemCard({
   return (
     <div
       id="ItemCard"
-      className={`bg-white rounded-lg overflow-hidden flex gap-4 sm:gap-6
-        ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
+      className="bg-white border border-black/[0.1] rounded-lg overflow-hidden flex gap-4 sm:gap-6"
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
@@ -193,8 +192,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
       {/* OutfitView — summary card (sticky sidebar) */}
       <div
         id="OutfitView-summary"
-        className={`bg-white rounded-lg p-7 lg:sticky lg:top-[172px]
-          ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
+        className="bg-white border border-black/[0.1] rounded-lg p-7 lg:sticky lg:top-[172px]"
         style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
       >
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
@@ -212,8 +210,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         {/* Summary card — total price row */}
         <div
           id="OutfitView-summary-total"
-          className={`flex items-end justify-between pt-5 mb-6
-            ${useKosmos ? 'border-t border-[--border-soft]' : 'border-t border-black/[0.08]'}`}
+          className="flex items-end justify-between pt-5 mb-6 border-t border-black/[0.08]"
         >
           <div>
             <p className="text-[10px] tracking-[0.18em] uppercase text-[--text-subtle] mb-1">

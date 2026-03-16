@@ -53,7 +53,7 @@
   --border-soft: #E3E5E8;                  /* neutralGrey 100 */
   --surface:     #FFFFFF;                  /* neutralGrey 0 */
   --surface2:    #E3E5E8;                  /* neutralGrey 100 */
-  --bg:          #F4F5F6;                  /* neutralGrey 50 */
+  --bg:          #FFFFFF;                  /* white — matches Kmart's white page */
 
   --skeleton-base:  #F4F5F6;              /* neutralGrey 50  */
   --skeleton-shine: #E3E5E8;              /* neutralGrey 100 */
