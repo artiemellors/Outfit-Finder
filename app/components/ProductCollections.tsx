@@ -42,7 +42,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
   const activeCollection = isLoading ? null : collections[activeTab]
 
   return (
-    <div className="w-full bg-white border-t border-[#e5e5e5]">
+    <div className="w-full bg-white border-t border-[--border-soft]">
     <div id="ProductCollections" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16">
       <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mt-8 mb-5">
         Shop the Edit
@@ -110,7 +110,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   <span className="text-xs font-bold align-top">$</span>
                   {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                 </p>
-                <p className="text-[11px] font-semibold mt-auto" style={{ color: '#1768B0' }}>View at Kmart ↗</p>
+                <p className="text-[11px] font-semibold mt-auto" style={{ color: 'var(--accent)' }}>View at Kmart ↗</p>
               </div>
             </a>
           ))

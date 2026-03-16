@@ -1,7 +1,7 @@
 /*
  * Kosmos design token overrides
  *
- * Enable by setting NEXT_PUBLIC_KOSMOS=1 in .env.local
+ * Enable by setting NEXT_PUBLIC_SHOW_NEW_FEATURE=true in .env.local
  * This adds data-theme="kosmos" to <html>, activating the overrides below.
  *
  * Token values sourced from the Kosmos MUI theme bundle (main.f5a2625c.iframe.bundle.js).
@@ -54,6 +54,9 @@
   --surface:     #FFFFFF;                  /* neutralGrey 0 */
   --surface2:    #E3E5E8;                  /* neutralGrey 100 */
   --bg:          #F4F5F6;                  /* neutralGrey 50 */
+
+  --skeleton-base:  #F4F5F6;              /* neutralGrey 50  */
+  --skeleton-shine: #E3E5E8;              /* neutralGrey 100 */
 
   /*
    * Spacing scale

@@ -9,11 +9,11 @@ const dmSans = DM_Sans({
   variable: '--font-sans',
 })
 
-// Set NEXT_PUBLIC_KOSMOS=1 in .env.local to enable Kosmos design token alignment.
+// Set NEXT_PUBLIC_SHOW_NEW_FEATURE=true in .env.local to enable Kosmos design token alignment.
 // Applies Kmart brand tokens (AnkoModerat typeface, neutralGrey colour scale,
 // Kosmos spacing/radius values) via [data-theme="kosmos"] CSS overrides.
 // Remove or unset the flag to revert to the original Kurator styling.
-const useKosmos = process.env.NEXT_PUBLIC_KOSMOS === '1'
+const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
 
 export const metadata: Metadata = {
   title: 'Kmart Kurator',
