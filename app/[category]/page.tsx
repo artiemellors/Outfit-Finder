@@ -328,7 +328,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                       focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]
                       ${useKosmos
                         ? 'border-[--border-soft] rounded-full focus-within:border-[#1768B0] shadow-sm'
-                        : 'border-black/[0.08] rounded-tl-[8px] rounded-bl-[8px] focus-within:border-[#1768B0]'
+                        : 'border-black/[0.08] rounded-[8px] overflow-hidden focus-within:border-[#1768B0]'
                       }`}
         >
           <input
@@ -383,13 +383,15 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             <button
               type="submit"
               disabled={loading}
-              className="shrink-0 px-7 py-[18px] text-base rounded-tr-[8px] rounded-br-[8px]
+              className="shrink-0 px-7 py-[18px] text-sm font-semibold
                          text-white border-none cursor-pointer transition-all
                          hover:brightness-90 active:scale-[0.98]
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         flex items-center gap-2"
               style={{ background: 'var(--accent)' }}
             >
               <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
+              <span className="hidden sm:inline">Search</span>
             </button>
           )}
         </form>
