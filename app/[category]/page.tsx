@@ -337,8 +337,9 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             placeholder={config.searchPlaceholder}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
-                       text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
+                       text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
                        disabled:opacity-50"
+            style={{ fontSize: '16px', zoom: 0.875 }}
           />
 
           {/* Gender segmented control — desktop, outfits only */}
