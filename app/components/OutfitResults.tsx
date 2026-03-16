@@ -96,7 +96,7 @@ function ItemCard({
 
         {/* ItemCard — content column */}
         <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col py-5 sm:py-6 pr-5 sm:pr-6">
-          <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
+          <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-1"
              style={{ color: 'var(--accent)' }}>
             {item.category}
           </p>
@@ -114,13 +114,24 @@ function ItemCard({
               {product.colour || '\u00a0'}
             </p>
           )}
-          <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2 min-h-[2lh]">
+          <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
             {item.description}
           </p>
           <KmartPrice
             price={product.price}
-            className="font-sans text-xl font-bold text-[--text] leading-none mt-3"
+            className="font-sans text-xl font-bold text-[--text] leading-none mt-auto pt-3"
           />
+          {/* dots — in-flow below price, relate to the card/variant not just price */}
+          {count > 1 && (
+            <div className="flex gap-1.5 mt-2">
+              {item.alternatives.map((_, i) => (
+                <span
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/[0.15]'}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* right arrow — centred on right card edge, half overflowing */}
@@ -130,18 +141,6 @@ function ItemCard({
             aria-label="Next option"
             className={`absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
           >›</button>
-        )}
-
-        {/* dots — centred on card, bottom */}
-        {count > 1 && (
-          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
-            {item.alternatives.map((_, i) => (
-              <span
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/[0.15]'}`}
-              />
-            ))}
-          </div>
         )}
       </a>
     </div>
