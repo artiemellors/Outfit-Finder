@@ -33,7 +33,7 @@ function KmartPrice({ price, className = '' }: { price: string; className?: stri
   const stripped = price.startsWith('$') ? price.slice(1) : price
   return (
     <span className={className}>
-      <span className="text-sm font-bold align-top">$</span>
+      <span className="text-[16px] font-bold align-top">$</span>
       {stripped}
     </span>
   )
@@ -100,7 +100,7 @@ function ItemCard({
              style={{ color: 'var(--accent)' }}>
             {item.category}
           </p>
-          <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text] line-clamp-2">
+          <h3 className="font-sans text-[16px] font-normal leading-tight mb-1 text-[--text] line-clamp-2">
             {product.name}
           </h3>
           {/* always rendered to reserve vertical space; invisible when no colour */}
@@ -119,7 +119,7 @@ function ItemCard({
           </p>
           <KmartPrice
             price={product.price}
-            className="font-sans text-xl font-bold text-[--text] leading-none mt-auto pt-3"
+            className="font-sans text-[24px] font-bold text-[--text] leading-none mt-auto pt-3"
           />
           {/* dots — in-flow below price, relate to the card/variant not just price */}
           {count > 1 && (
