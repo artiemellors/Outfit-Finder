@@ -327,7 +327,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
           className={`flex w-full bg-white border overflow-hidden transition-all duration-200
                       focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]
                       ${useKosmos
-                        ? 'border-black/[0.12] rounded-[10px] focus-within:border-[#1768B0]'
+                        ? 'border-black/[0.2] rounded-[10px] focus-within:border-[#1768B0]'
                         : 'border-black/[0.08] rounded-[8px] focus-within:border-[#1768B0]'
                       }`}
         >
@@ -337,8 +337,9 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             placeholder={config.searchPlaceholder}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
-                       text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
+                       text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
                        disabled:opacity-50"
+            style={{ fontSize: '16px', zoom: 0.875 }}
           />
 
           {/* Gender segmented control — desktop, outfits only */}
@@ -429,11 +430,10 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                   key={tile.label}
                   type="button"
                   onClick={() => runSearch(tile.query)}
-                  className={`flex-shrink-0 px-4 py-2 bg-white transition-all duration-150 cursor-pointer
-                             hover:border-[#1768B0] hover:text-[#1768B0] active:scale-[0.98]
+                  className={`flex-shrink-0 px-4 py-2 bg-white transition-all duration-150 cursor-pointer active:scale-[0.98]
                              ${useKosmos
-                               ? 'border border-[--border-soft] rounded text-xs font-normal text-[#1a1a1a]'
-                               : 'border border-black/[0.08] rounded-full text-sm font-light text-[#1a1a1a]'
+                               ? 'border border-[#1768B0] rounded-full text-sm font-normal text-[#1768B0] hover:bg-[#1768B0] hover:text-white'
+                               : 'border border-black/[0.08] rounded-full text-sm font-light text-[#1a1a1a] hover:border-[#1768B0] hover:text-[#1768B0]'
                              }`}
                 >
                   {tile.label}

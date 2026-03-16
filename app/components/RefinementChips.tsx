@@ -57,10 +57,10 @@ export default function RefinementChips({ chips, onRefine }: Props) {
               key={chip}
               type="button"
               onClick={() => onRefine(chip)}
-              className="flex-shrink-0 px-4 py-2 bg-white border border-black/[0.08] rounded-full
-                         text-sm text-[--text] whitespace-nowrap
+              className="flex-shrink-0 px-4 py-2 bg-white border border-[#1768B0] rounded-full
+                         text-sm text-[#1768B0] whitespace-nowrap
                          transition-colors duration-150 cursor-pointer
-                         hover:border-[--accent] hover:text-[--accent]
+                         hover:bg-[#1768B0] hover:text-white
                          active:scale-[0.98]"
               style={{ animation: 'chipIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both' }}
             >

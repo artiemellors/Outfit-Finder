@@ -193,8 +193,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
       {/* OutfitView — summary card (sticky sidebar) */}
       <div
         id="OutfitView-summary"
-        className={`bg-white lg:sticky lg:top-[172px]
-          ${useKosmos ? 'rounded-lg' : 'rounded-lg p-7 border border-black/[0.08]'}`}
+        className="bg-white lg:sticky lg:top-[172px] rounded-lg p-7 border border-black/[0.08]"
         style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
       >
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
@@ -278,8 +277,7 @@ export default function OutfitResults({
       {/* OutfitResults — sticky outfit tab bar */}
       <div id="OutfitResults-tabbar" className={`sticky top-20 z-10 -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6
         ${useKosmos ? 'bg-white' : 'bg-[--bg]'}`}>
-        <div className={`flex gap-0 overflow-x-auto scrollbar-hide
-          ${useKosmos ? '' : 'border-b border-black/[0.08]'}`}>
+        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08]">
           {outfits.map((outfit, i) => (
             <button
               key={i}
@@ -288,7 +286,7 @@ export default function OutfitResults({
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
                             ? useKosmos
-                              ? 'border-[#1768B0] text-[--text]'
+                              ? 'border-[#1768B0] text-[#1768B0]'
                               : 'border-[--accent] text-[--accent]'
                             : 'border-transparent text-[--text-muted] hover:text-[--text]'
                           }`}
