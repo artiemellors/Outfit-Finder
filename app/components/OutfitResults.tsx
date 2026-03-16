@@ -53,15 +53,29 @@ function ItemCard({
   const product = item.alternatives[idx]
   const count = item.alternatives.length
 
+  const arrowClass = `w-8 h-8 rounded-full bg-white border border-black/[0.12] shadow-sm
+                      flex items-center justify-center text-sm text-[--text-muted]
+                      hover:border-black/30 hover:text-[--text] transition-all z-10`
+
   return (
-    <div
-      id="ItemCard"
-      className={`bg-white rounded-lg overflow-hidden flex gap-4 sm:gap-6
-        ${useKosmos ? 'border border-[#CDD1D5]' : 'border border-black/[0.08]'}`}
-      style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
-    >
+    <div style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}>
+      {/* card */}
+      <div
+        id="ItemCard"
+        className={`relative bg-white rounded-lg flex gap-4 sm:gap-6
+          ${useKosmos ? 'border border-[#CDD1D5]' : 'border border-black/[0.08]'}`}
+      >
+        {/* left arrow — centred on left card edge, half overflowing */}
+        {count > 1 && (
+          <button
+            onClick={() => onIdxChange((idx - 1 + count) % count)}
+            aria-label="Previous option"
+            className={`absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
+          >‹</button>
+        )}
+
         {/* ItemCard — image thumbnail (flush to card edges) */}
-        <div id="ItemCard-image" className="relative w-28 sm:w-[160px] shrink-0 bg-white">
+        <div id="ItemCard-image" className="w-28 sm:w-[160px] shrink-0 bg-white rounded-l-lg overflow-hidden">
           {product.imageUrl ? (
             <img
               key={idx}
@@ -74,31 +88,11 @@ function ItemCard({
               }}
             />
           ) : null}
-          {count > 1 && (
-            <>
-              <button
-                onClick={() => onIdxChange((idx - 1 + count) % count)}
-                aria-label="Previous option"
-                className="absolute left-1 top-1/2 -translate-y-1/2
-                           w-7 h-7 rounded-full flex items-center justify-center
-                           bg-white/70 backdrop-blur-sm text-[--text] text-base leading-none
-                           hover:bg-white/90 transition-colors z-10"
-              >‹</button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 pointer-events-none z-10">
-                {item.alternatives.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/20'}`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
         </div>
 
         {/* ItemCard — content column (meta + price/link) */}
-        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-4 sm:pr-5">
-          {/* ItemCard — product meta (category, name, colour, description, nav) */}
+        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-5 sm:pr-6">
+          {/* ItemCard — product meta (category, name, colour, description) */}
           <div id="ItemCard-meta" className="flex-1 min-w-0">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
                style={{ color: 'var(--accent)' }}>
@@ -161,15 +155,28 @@ function ItemCard({
             )}
           </div>
         </div>
+
+        {/* right arrow — centred on right card edge, half overflowing */}
         {count > 1 && (
           <button
             onClick={() => onIdxChange((idx + 1) % count)}
             aria-label="Next option"
-            className="shrink-0 self-stretch flex items-center px-3
-                       text-[--text-muted] hover:text-[--text] hover:bg-black/[0.03]
-                       border-l border-black/[0.06] transition-all"
+            className={`absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
           >›</button>
         )}
+      </div>
+
+      {/* dots — centred below the card */}
+      {count > 1 && (
+        <div className="flex justify-center gap-1.5 mt-2.5">
+          {item.alternatives.map((_, i) => (
+            <span
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/[0.15]'}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
