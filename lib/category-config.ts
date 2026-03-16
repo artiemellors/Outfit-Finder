@@ -30,7 +30,7 @@ export interface CategoryConfig {
 const OUTFITS_CONFIG: CategoryConfig = {
   slug: 'outfits',
   label: 'Outfits',
-  heroHeadline: 'Find your complete look — instantly.',
+  heroHeadline: 'Find your complete look.',
   heroSubline: 'Style Intelligence',
   searchPlaceholder: 'e.g. smart casual for a job interview',
   occasionSectionLabel: 'Popular occasions',
@@ -130,7 +130,7 @@ Each product in search results has an "id", "name", "price", and "colour" field.
 const HOME_CONFIG: CategoryConfig = {
   slug: 'home',
   label: 'Home & Living',
-  heroHeadline: 'Style your space — instantly.',
+  heroHeadline: 'Style your space.',
   heroSubline: 'Home Intelligence',
   searchPlaceholder: 'e.g. cosy living room refresh with warm tones',
   occasionSectionLabel: 'Popular looks',
@@ -208,7 +208,7 @@ Each product has an "id", "name", "price", and "colour" field. When calling pres
 const KITCHEN_CONFIG: CategoryConfig = {
   slug: 'kitchen',
   label: 'Kitchen & Dining',
-  heroHeadline: 'Kit out your kitchen — instantly.',
+  heroHeadline: 'Kit out your kitchen.',
   heroSubline: 'Kitchen Intelligence',
   searchPlaceholder: 'e.g. complete cookware set for weeknight dinners',
   occasionSectionLabel: 'Popular sets',
@@ -274,7 +274,7 @@ Each product has an "id", "name", "price", and "colour" field. When calling pres
 const PARTIES_CONFIG: CategoryConfig = {
   slug: 'parties',
   label: 'Kids Parties',
-  heroHeadline: 'Plan the perfect party — instantly.',
+  heroHeadline: 'Plan the perfect party.',
   heroSubline: 'Party Intelligence',
   searchPlaceholder: 'e.g. dinosaur theme birthday party for a 5 year old',
   occasionSectionLabel: 'Popular themes',
