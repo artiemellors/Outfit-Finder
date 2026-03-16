@@ -1,0 +1,83 @@
+/*
+ * Kosmos design token overrides
+ *
+ * Enable by setting NEXT_PUBLIC_KOSMOS=1 in .env.local
+ * This adds data-theme="kosmos" to <html>, activating the overrides below.
+ *
+ * Token values sourced from the Kosmos MUI theme bundle (main.f5a2625c.iframe.bundle.js).
+ * Kosmos uses a JS theme object rather than CSS custom properties — these values
+ * have been mapped to the app's existing CSS variable names for a drop-in swap.
+ */
+
+/* AnkoModerat — Kmart brand typeface, served from Kosmos Storybook CDN */
+@font-face {
+  font-family: 'AnkoModerat';
+  src: url('https://kmartau.github.io/kosmos-ds/fonts/AnkoModerat-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AnkoModerat';
+  src: url('https://kmartau.github.io/kosmos-ds/fonts/AnkoModerat-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+[data-theme="kosmos"] {
+  /*
+   * Typography
+   * Kosmos: fontFamily: ["AnkoModerat", "Arial", "sans-serif"]
+   */
+  --font-family-sans: 'AnkoModerat', Arial, sans-serif;
+
+  /*
+   * Colours
+   *
+   * kmartBlue palette:
+   *   50:#E4F0FB  100:#C9E2F8  200:#93C5F1  300:#58A5E9
+   *   400:#2288E2  500:#1768B0  600:#12538C  700:#0E3E68
+   *
+   * neutralGrey palette:
+   *   0:#FFFFFF  50:#F4F5F6  100:#E3E5E8  300:#9FA5AD  1000:#000000
+   */
+  --accent:      #1768B0;                  /* kmartBlue 500 — unchanged */
+  --accent-dim:  rgba(23, 104, 176, 0.08); /* kmartBlue 500 @ 8% */
+
+  --text:        #000000;                  /* neutralGrey 1000 */
+  --text-muted:  rgba(0, 0, 0, 0.5);
+  --text-subtle: rgba(0, 0, 0, 0.3);
+
+  --border-soft: #E3E5E8;                  /* neutralGrey 100 */
+  --surface:     #FFFFFF;                  /* neutralGrey 0 */
+  --surface2:    #E3E5E8;                  /* neutralGrey 100 */
+  --bg:          #F4F5F6;                  /* neutralGrey 50 */
+
+  /*
+   * Spacing scale
+   * Kosmos: xs:2px  sm:4px  md:8px  lg:12px  xl:16px  xxl:24px
+   *         small:16px  medium:24px  large:32px  xlarge:48px
+   */
+  --kosmos-spacing-xs:    0.125rem;  /*  2px */
+  --kosmos-spacing-sm:    0.25rem;   /*  4px */
+  --kosmos-spacing-md:    0.5rem;    /*  8px */
+  --kosmos-spacing-lg:    0.75rem;   /* 12px */
+  --kosmos-spacing-xl:    1rem;      /* 16px */
+  --kosmos-spacing-xxl:   1.5rem;    /* 24px */
+  --kosmos-spacing-xxxl:  2rem;      /* 32px */
+  --kosmos-spacing-large: 3rem;      /* 48px */
+
+  /*
+   * Radius scale
+   * Kosmos: xs:2px  sm:4px  md:8px  lg:12px  xl:16px  xxl:24px  xxxl:200px
+   */
+  --kosmos-radius-xs:   0.125rem;  /*   2px */
+  --kosmos-radius-sm:   0.25rem;   /*   4px */
+  --kosmos-radius-md:   0.5rem;    /*   8px */
+  --kosmos-radius-lg:   0.75rem;   /*  12px */
+  --kosmos-radius-xl:   1rem;      /*  16px */
+  --kosmos-radius-xxl:  1.5rem;    /*  24px */
+  --kosmos-radius-pill: 12.5rem;   /* 200px */
+}
