@@ -299,13 +299,11 @@ export default function OutfitResults({
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`px-5 pb-3 pt-1 text-[11px] font-semibold tracking-[0.12em]
+              className={`px-5 pb-3 pt-1 text-[11px] tracking-[0.12em]
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
-                            ? useKosmos
-                              ? 'border-[#1768B0] text-[#1768B0]'
-                              : 'border-[--accent] text-[--accent]'
-                            : 'border-transparent text-[--text-muted] hover:text-[--text]'
+                            ? `font-semibold ${useKosmos ? 'border-[#1768B0] text-[#1768B0]' : 'border-[--accent] text-[--accent]'}`
+                            : 'font-normal border-transparent text-black/30 hover:text-black/50'
                           }`}
             >
               {outfit.name}
