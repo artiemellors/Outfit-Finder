@@ -57,7 +57,7 @@ function ItemCard({
     <div
       id="ItemCard"
       className={`bg-white rounded-lg overflow-hidden flex gap-4 sm:gap-6
-        ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
+        ${useKosmos ? 'border border-[#CDD1D5]' : 'border border-black/[0.08]'}`}
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
@@ -193,8 +193,8 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
       {/* OutfitView — summary card (sticky sidebar) */}
       <div
         id="OutfitView-summary"
-        className={`bg-white rounded-lg p-7 lg:sticky lg:top-[172px]
-          ${useKosmos ? 'border border-[--border-soft]' : 'border border-black/[0.08]'}`}
+        className={`bg-white lg:sticky lg:top-[172px]
+          ${useKosmos ? 'rounded-lg' : 'rounded-lg p-7 border border-black/[0.08]'}`}
         style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
       >
         <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
@@ -276,9 +276,10 @@ export default function OutfitResults({
   return (
     <div id="OutfitResults" className="max-w-4xl mx-auto px-4 sm:px-8 pb-16" style={{ animation: 'fadeUp 0.5s ease both' }}>
       {/* OutfitResults — sticky outfit tab bar */}
-      <div id="OutfitResults-tabbar" className="sticky top-20 z-10 bg-[--bg] -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6">
-        <div className={`flex gap-0 overflow-x-auto scrollbar-hide border-b
-          ${useKosmos ? 'border-[--border-soft]' : 'border-black/[0.08]'}`}>
+      <div id="OutfitResults-tabbar" className={`sticky top-20 z-10 -mx-4 sm:-mx-8 px-4 sm:px-8 pt-5 mb-6
+        ${useKosmos ? 'bg-white' : 'bg-[--bg]'}`}>
+        <div className={`flex gap-0 overflow-x-auto scrollbar-hide
+          ${useKosmos ? '' : 'border-b border-black/[0.08]'}`}>
           {outfits.map((outfit, i) => (
             <button
               key={i}
@@ -287,7 +288,7 @@ export default function OutfitResults({
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
                             ? useKosmos
-                              ? 'border-[--brand-red] text-[--text]'
+                              ? 'border-[#1768B0] text-[--text]'
                               : 'border-[--accent] text-[--accent]'
                             : 'border-transparent text-[--text-muted] hover:text-[--text]'
                           }`}

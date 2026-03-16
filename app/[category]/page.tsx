@@ -324,11 +324,11 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
 
         <form
           onSubmit={handleSubmit}
-          className={`flex w-full bg-white border transition-all duration-200
+          className={`flex w-full bg-white border overflow-hidden transition-all duration-200
                       focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]
                       ${useKosmos
-                        ? 'border-[--border-soft] rounded-full focus-within:border-[#1768B0] shadow-sm'
-                        : 'border-black/[0.08] rounded-[8px] overflow-hidden focus-within:border-[#1768B0]'
+                        ? 'border-black/[0.12] rounded-[10px] focus-within:border-[#1768B0]'
+                        : 'border-black/[0.08] rounded-[8px] focus-within:border-[#1768B0]'
                       }`}
         >
           <input
@@ -336,28 +336,27 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             onChange={e => setQuery(e.target.value)}
             placeholder={config.searchPlaceholder}
             disabled={loading}
-            className={`flex-1 min-w-0 bg-transparent border-none outline-none py-[18px]
+            className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
                        text-[16px] sm:text-sm text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
-                       disabled:opacity-50
-                       ${useKosmos ? 'px-5 rounded-full' : 'px-6'}`}
+                       disabled:opacity-50"
           />
 
           {/* Gender segmented control — desktop, outfits only */}
           {config.showGenderFilter && (
             <>
               <div className="hidden sm:block w-px self-stretch my-3 bg-black/[0.08] shrink-0" />
-              <div className="hidden sm:flex items-center pl-1 pr-3 shrink-0 gap-0.5">
+              <div className="hidden sm:flex items-center px-4 shrink-0 gap-4">
                 {(['men', 'women'] as const).map(g => (
                   <button
                     key={g}
                     type="button"
                     onClick={() => setGender(prev => prev === g ? null : g)}
                     disabled={loading}
-                    className="px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase
-                               rounded transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="text-[11px] font-semibold tracking-[0.18em] uppercase
+                               transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={gender === g
-                      ? { background: 'rgba(23,104,176,0.08)', color: 'var(--accent)' }
-                      : { color: 'rgba(26,26,26,0.4)', background: 'transparent' }
+                      ? { color: 'var(--accent)' }
+                      : { color: 'rgba(26,26,26,0.4)' }
                     }
                   >
                     {g === 'men' ? 'Men' : 'Women'}
@@ -371,13 +370,13 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
             <button
               type="submit"
               disabled={loading}
-              className="shrink-0 w-12 h-12 m-1 rounded-full text-white flex items-center justify-center
+              className="shrink-0 px-7 text-white flex items-center justify-center
                          border-none cursor-pointer transition-all
                          hover:brightness-90 active:scale-[0.98]
                          disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: 'var(--brand-red)' }}
+              style={{ background: '#1768B0' }}
             >
-              <i className={`fa-solid fa-magnifying-glass${loading ? ' animate-search-rock' : ''}`} />
+              <i className={`fa-solid fa-magnifying-glass text-[15px]${loading ? ' animate-search-rock' : ''}`} />
             </button>
           ) : (
             <button
