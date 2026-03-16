@@ -62,7 +62,7 @@ function ItemCard({
       {/* card */}
       <div
         id="ItemCard"
-        className={`relative bg-white rounded-lg flex gap-4 sm:gap-6
+        className={`relative bg-white rounded-lg flex gap-4 sm:gap-6 min-h-[130px] sm:min-h-[148px]
           ${useKosmos ? 'border border-[#CDD1D5]' : 'border border-black/[0.08]'}`}
       >
         {/* left arrow — centred on left card edge, half overflowing */}
@@ -98,20 +98,21 @@ function ItemCard({
                style={{ color: 'var(--accent)' }}>
               {item.category}
             </p>
-            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text]">
+            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text] line-clamp-2">
               {product.name}
             </h3>
-            {product.colour && (
-              useKosmos ? (
-                <p className="text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
-                  {product.colour}
-                </p>
-              ) : (
-                <p className="text-[11px] text-[--text-muted] mb-1.5">{product.colour}</p>
-              )
+            {/* always rendered to reserve vertical space; invisible when no colour */}
+            {useKosmos ? (
+              <p className={`text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+                <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
+                {product.colour || '\u00a0'}
+              </p>
+            ) : (
+              <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+                {product.colour || '\u00a0'}
+              </p>
             )}
-            <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
+            <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2 min-h-[2lh]">
               {item.description}
             </p>
           </div>
@@ -164,19 +165,19 @@ function ItemCard({
             className={`absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
           >›</button>
         )}
-      </div>
 
-      {/* dots — centred below the card */}
-      {count > 1 && (
-        <div className="flex justify-center gap-1.5 mt-2.5">
-          {item.alternatives.map((_, i) => (
-            <span
-              key={i}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/[0.15]'}`}
-            />
-          ))}
-        </div>
-      )}
+        {/* dots — centred on card, bottom */}
+        {count > 1 && (
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+            {item.alternatives.map((_, i) => (
+              <span
+                key={i}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/[0.15]'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
