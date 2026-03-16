@@ -327,7 +327,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
           className={`flex w-full bg-white border overflow-hidden transition-all duration-200
                       focus-within:shadow-[0_0_0_3px_rgba(23,104,176,0.1)]
                       ${useKosmos
-                        ? 'border-black/[0.12] rounded-[10px] focus-within:border-[#1768B0]'
+                        ? 'border-black/[0.2] rounded-[10px] focus-within:border-[#1768B0]'
                         : 'border-black/[0.08] rounded-[8px] focus-within:border-[#1768B0]'
                       }`}
         >
