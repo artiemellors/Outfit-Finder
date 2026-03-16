@@ -58,6 +58,8 @@
   --skeleton-base:  #F4F5F6;              /* neutralGrey 50  */
   --skeleton-shine: #E3E5E8;              /* neutralGrey 100 */
 
+  --brand-red: #E31837;                   /* Kmart brand red — K logo */
+
   /*
    * Spacing scale
    * Kosmos: xs:2px  sm:4px  md:8px  lg:12px  xl:16px  xxl:24px
