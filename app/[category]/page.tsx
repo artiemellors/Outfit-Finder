@@ -228,16 +228,32 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
         className="sticky top-0 z-20 bg-white border-b border-black/[0.06]"
         style={{ animation: 'fadeDown 0.6s ease both' }}
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-20 flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 h-20 flex items-center gap-6">
           {/* Logo */}
           <a href="/outfits" className="flex items-center shrink-0">
-            <Image src="/Logo.svg" alt="Kmart" width={88} height={28} priority />
+            <Image src="/Logo.svg" alt="Kmart" width={130} height={41} priority />
           </a>
 
-          {/* Tagline — desktop only */}
-          <span className="hidden sm:block ml-auto text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(26,26,26,0.4)] shrink-0">
-            Powered by Kmart
-          </span>
+          {/* Desktop nav links */}
+          <nav className="hidden sm:flex items-center gap-1 ml-auto">
+            {CATEGORY_SLUGS.map(slug => {
+              const cfg = getCategoryConfig(slug)
+              const isActive = slug === categorySlug
+              return (
+                <a
+                  key={slug}
+                  href={`/${slug}`}
+                  className="px-4 py-2 rounded text-[11px] font-semibold tracking-[0.12em] uppercase transition-all"
+                  style={isActive
+                    ? { color: 'var(--accent)' }
+                    : { color: 'rgba(26,26,26,0.45)' }
+                  }
+                >
+                  {cfg.label}
+                </a>
+              )
+            })}
+          </nav>
 
           {/* Hamburger — mobile only */}
           <button
