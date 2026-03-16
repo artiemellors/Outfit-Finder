@@ -61,7 +61,7 @@ function ItemCard({
       style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}
     >
         {/* ItemCard — image thumbnail (flush to card edges) */}
-        <div id="ItemCard-image" className="relative group w-28 sm:w-[160px] shrink-0 bg-white">
+        <div id="ItemCard-image" className="relative w-28 sm:w-[160px] shrink-0 bg-white">
           {product.imageUrl ? (
             <img
               key={idx}
@@ -82,34 +82,22 @@ function ItemCard({
                 className="absolute left-1 top-1/2 -translate-y-1/2
                            w-7 h-7 rounded-full flex items-center justify-center
                            bg-white/70 backdrop-blur-sm text-[--text] text-base leading-none
-                           opacity-0 group-hover:opacity-100 transition-opacity duration-150
-                           hover:bg-white/90 z-10"
+                           hover:bg-white/90 transition-colors z-10"
               >‹</button>
-              <button
-                onClick={() => onIdxChange((idx + 1) % count)}
-                aria-label="Next option"
-                className="absolute right-1 top-1/2 -translate-y-1/2
-                           w-7 h-7 rounded-full flex items-center justify-center
-                           bg-white/70 backdrop-blur-sm text-[--text] text-base leading-none
-                           opacity-0 group-hover:opacity-100 transition-opacity duration-150
-                           hover:bg-white/90 z-10"
-              >›</button>
-              <span
-                className="absolute bottom-1.5 left-1/2 -translate-x-1/2
-                           text-[10px] tabular-nums leading-none
-                           px-1.5 py-0.5 rounded-full
-                           bg-black/40 text-white
-                           opacity-0 group-hover:opacity-100 transition-opacity duration-150
-                           pointer-events-none z-10"
-              >
-                {idx + 1}/{count}
-              </span>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 pointer-events-none z-10">
+                {item.alternatives.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${i === idx ? 'bg-black/50' : 'bg-black/20'}`}
+                  />
+                ))}
+              </div>
             </>
           )}
         </div>
 
         {/* ItemCard — content column (meta + price/link) */}
-        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-5 sm:pr-6">
+        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-4 sm:pr-5">
           {/* ItemCard — product meta (category, name, colour, description, nav) */}
           <div id="ItemCard-meta" className="flex-1 min-w-0">
             <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
@@ -132,9 +120,6 @@ function ItemCard({
             <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2">
               {item.description}
             </p>
-            {count > 1 && (
-              <p className="text-[11px] text-[--text-subtle] mt-3">{count} options</p>
-            )}
           </div>
 
           {/* ItemCard — price + "View at Kmart" link */}
@@ -176,6 +161,15 @@ function ItemCard({
             )}
           </div>
         </div>
+        {count > 1 && (
+          <button
+            onClick={() => onIdxChange((idx + 1) % count)}
+            aria-label="Next option"
+            className="shrink-0 self-stretch flex items-center px-3
+                       text-[--text-muted] hover:text-[--text] hover:bg-black/[0.03]
+                       border-l border-black/[0.06] transition-all"
+          >›</button>
+        )}
     </div>
   )
 }
