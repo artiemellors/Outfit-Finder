@@ -24,8 +24,11 @@ let storybookIndex = null;
 /** The shared Playwright browser instance */
 let browser = null;
 
-/** Whether token scraping has finished */
+/** Whether token scraping has finished (or failed) */
 let tokensReady = false;
+
+/** Set if index.json could not be fetched */
+let indexError = null;
 
 /**
  * Initialise the scraper:
@@ -36,7 +39,14 @@ let tokensReady = false;
  * Returns immediately; token scraping runs async in the background.
  */
 export async function initScraper() {
-  storybookIndex = await fetchIndex();
+  try {
+    storybookIndex = await fetchIndex();
+  } catch (err) {
+    indexError = err.message;
+    tokensReady = true; // don't leave tools in permanent "loading" state
+    console.error('[scraper] failed to fetch index.json:', err.message);
+    return;
+  }
 
   // Dynamically import playwright so the server starts even if playwright isn't
   // installed yet (it will degrade gracefully and return URLs only).
@@ -72,6 +82,7 @@ export async function closeScraper() {
  * Falls back to returning the Storybook URL if scraping hasn't completed.
  */
 export function getTokens(category) {
+  if (indexError) return { status: 'error', error: indexError };
   if (!storybookIndex) return { status: 'loading' };
 
   const normalisedCategory = (category || '').toLowerCase().trim();
@@ -116,7 +127,7 @@ export function listTokenCategories() {
  * Return the full Storybook component index grouped by top-level category.
  */
 export function listComponents() {
-  if (!storybookIndex) return {};
+  if (indexError || !storybookIndex) return {};
 
   const groups = {};
   for (const entry of Object.values(storybookIndex.entries)) {
@@ -155,6 +166,7 @@ export function searchComponents(keyword) {
  * Scrapes lazily and caches.
  */
 export async function getComponent(name) {
+  if (indexError) return { status: 'error', error: indexError };
   if (!storybookIndex) return { status: 'loading' };
 
   const normName = (name || '').toLowerCase();

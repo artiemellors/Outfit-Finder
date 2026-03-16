@@ -154,6 +154,14 @@ function handleGetTokens(category) {
 
   const result = getTokens(category);
 
+  if (result.status === 'error') {
+    return text(
+      `**Could not reach the Kosmos design system** (network error: ${result.error}).\n\n` +
+      `Browse tokens directly in Storybook:\n` +
+      `https://kmartau.github.io/kosmos-ds/?path=/docs/tokens-${encodeURIComponent(category)}`
+    );
+  }
+
   if (result.status === 'loading' && !result.results) {
     return text(
       `**Design system is still loading.** Token scraping started at server startup.\n` +
@@ -204,6 +212,13 @@ async function handleGetComponent(name) {
   }
 
   const result = await getComponent(name);
+
+  if (result.status === 'error') {
+    return text(
+      `**Could not reach the Kosmos design system** (network error: ${result.error}).\n\n` +
+      `Browse components directly in Storybook: https://kmartau.github.io/kosmos-ds`
+    );
+  }
 
   if (result.status === 'loading') {
     return text('Design system index is still loading. Try again in a moment.');
