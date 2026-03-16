@@ -179,10 +179,9 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         className="bg-white lg:sticky lg:top-[172px] rounded-lg p-7 border border-black/[0.08]"
         style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
       >
-        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
+        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-1.5">
           {groupLabel}
         </p>
-        <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
 
         <h2 className="font-sans text-2xl font-bold leading-snug text-[--text] mb-3">
           {outfit.name}
