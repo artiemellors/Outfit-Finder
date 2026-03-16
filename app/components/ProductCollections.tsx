@@ -127,14 +127,14 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                   )}
                 </div>
                 <div className="pt-2 pb-3 flex flex-col">
-                  <p className="text-[12px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-1">
+                  <p className="text-[16px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-1">
                     {p.name}
                   </p>
                   {p.colour && (
                     <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-1.5">{p.colour}</p>
                   )}
-                  <p className="font-bold text-[#1a1a1a] leading-none text-[14px]">
-                    <span className="text-[10px] font-bold align-top">$</span>
+                  <p className="font-bold text-[#1a1a1a] leading-none text-[24px]">
+                    <span className="text-[16px] font-bold align-top">$</span>
                     {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                   </p>
                 </div>
