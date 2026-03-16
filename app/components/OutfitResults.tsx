@@ -59,16 +59,20 @@ function ItemCard({
 
   return (
     <div style={{ animation: `fadeUp 0.5s ${animDelay}ms ease both` }}>
-      {/* card */}
-      <div
+      {/* card — entire card is a link to the product */}
+      <a
         id="ItemCard"
+        href={product.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
         className={`relative bg-white rounded-lg flex gap-4 sm:gap-6 min-h-[130px] sm:min-h-[148px]
-          ${useKosmos ? 'border border-[#CDD1D5]' : 'border border-black/[0.08]'}`}
+          cursor-pointer transition-shadow duration-200 hover:shadow-md
+          ${useKosmos ? 'border border-[#CDD1D5] hover:border-[#aab0b8]' : 'border border-black/[0.08] hover:border-black/20'}`}
       >
         {/* left arrow — centred on left card edge, half overflowing */}
         {count > 1 && (
           <button
-            onClick={() => onIdxChange((idx - 1 + count) % count)}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onIdxChange((idx - 1 + count) % count) }}
             aria-label="Previous option"
             className={`absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
           >‹</button>
@@ -90,77 +94,39 @@ function ItemCard({
           ) : null}
         </div>
 
-        {/* ItemCard — content column (meta + price/link) */}
-        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col sm:flex-row sm:gap-6 py-5 sm:py-6 pr-5 sm:pr-6">
-          {/* ItemCard — product meta (category, name, colour, description) */}
-          <div id="ItemCard-meta" className="flex-1 min-w-0">
-            <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
-               style={{ color: 'var(--accent)' }}>
-              {item.category}
+        {/* ItemCard — content column */}
+        <div id="ItemCard-content" className="flex-1 min-w-0 flex flex-col py-5 sm:py-6 pr-5 sm:pr-6">
+          <p className="text-[9px] font-bold tracking-[0.22em] uppercase mb-2"
+             style={{ color: 'var(--accent)' }}>
+            {item.category}
+          </p>
+          <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text] line-clamp-2">
+            {product.name}
+          </h3>
+          {/* always rendered to reserve vertical space; invisible when no colour */}
+          {useKosmos ? (
+            <p className={`text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+              <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
+              {product.colour || '\u00a0'}
             </p>
-            <h3 className="font-sans text-sm font-medium leading-tight mb-1 text-[--text] line-clamp-2">
-              {product.name}
-            </h3>
-            {/* always rendered to reserve vertical space; invisible when no colour */}
-            {useKosmos ? (
-              <p className={`text-[11px] text-[--text-muted] flex items-center gap-1.5 mb-1.5 ${product.colour ? '' : 'invisible'}`}>
-                <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0 bg-[--surface2]" />
-                {product.colour || '\u00a0'}
-              </p>
-            ) : (
-              <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
-                {product.colour || '\u00a0'}
-              </p>
-            )}
-            <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2 min-h-[2lh]">
-              {item.description}
+          ) : (
+            <p className={`text-[11px] text-[--text-muted] mb-1.5 ${product.colour ? '' : 'invisible'}`}>
+              {product.colour || '\u00a0'}
             </p>
-          </div>
-
-          {/* ItemCard — price + "View at Kmart" link */}
-          <div id="ItemCard-price" className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-between
-                          mt-3 sm:mt-0 sm:gap-4 shrink-0">
-            <KmartPrice
-              price={product.price}
-              className="font-sans text-2xl font-bold text-[--text] leading-none"
-            />
-            {useKosmos ? (
-              <a
-                href={product.productUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-bold px-3 py-1.5 rounded border transition-all"
-                style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'var(--accent)'
-                  e.currentTarget.style.color = '#fff'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = 'var(--accent)'
-                }}
-              >
-                Shop ↗
-              </a>
-            ) : (
-              <a
-                href={product.productUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-semibold flex items-center gap-1
-                           hover:underline transition-all"
-                style={{ color: 'var(--accent)' }}
-              >
-                View at Kmart <span className="text-[9px]">↗</span>
-              </a>
-            )}
-          </div>
+          )}
+          <p className="text-xs leading-relaxed text-[--text-muted] line-clamp-2 min-h-[2lh]">
+            {item.description}
+          </p>
+          <KmartPrice
+            price={product.price}
+            className="font-sans text-xl font-bold text-[--text] leading-none mt-3"
+          />
         </div>
 
         {/* right arrow — centred on right card edge, half overflowing */}
         {count > 1 && (
           <button
-            onClick={() => onIdxChange((idx + 1) % count)}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onIdxChange((idx + 1) % count) }}
             aria-label="Next option"
             className={`absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 ${arrowClass}`}
           >›</button>
@@ -177,7 +143,7 @@ function ItemCard({
             ))}
           </div>
         )}
-      </div>
+      </a>
     </div>
   )
 }
@@ -213,10 +179,9 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         className="bg-white lg:sticky lg:top-[172px] rounded-lg p-7 border border-black/[0.08]"
         style={{ animation: 'fadeUp 0.5s 60ms ease both' }}
       >
-        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-3">
+        <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-[--text-subtle] mb-1.5">
           {groupLabel}
         </p>
-        <div className="w-10 h-0.5 mb-6" style={{ background: 'var(--accent)' }} />
 
         <h2 className="font-sans text-2xl font-bold leading-snug text-[--text] mb-3">
           {outfit.name}
@@ -299,13 +264,11 @@ export default function OutfitResults({
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`px-5 pb-3 pt-1 text-[11px] font-semibold tracking-[0.12em]
+              className={`px-5 pb-3 pt-1 text-[11px] tracking-[0.12em]
                           uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
                           ${i === activeIdx
-                            ? useKosmos
-                              ? 'border-[#1768B0] text-[#1768B0]'
-                              : 'border-[--accent] text-[--accent]'
-                            : 'border-transparent text-[--text-muted] hover:text-[--text]'
+                            ? `font-semibold ${useKosmos ? 'border-[#1768B0] text-[#1768B0]' : 'border-[--accent] text-[--accent]'}`
+                            : 'font-normal border-transparent text-black/30 hover:text-black/50'
                           }`}
             >
               {outfit.name}
