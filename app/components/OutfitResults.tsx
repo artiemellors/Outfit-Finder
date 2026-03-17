@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import VisualiserZone from './VisualiserZone'
 
 const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
 
@@ -236,37 +237,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
 
       {/* OutfitView — right column: item cards OR visualiser zone */}
       {visualiserOpen ? (
-        <div className="self-stretch flex flex-col" style={{ animation: 'fadeUp 0.3s ease both' }}>
-          {/* Upload zone — flex-1 so it scales to fill height above the button */}
-          <div
-            className="flex-1 rounded-xl border-2 border-dashed border-black/[0.12]
-                       bg-white flex flex-col items-center justify-center
-                       gap-4 p-8 cursor-pointer
-                       hover:border-[--accent] hover:bg-[rgba(23,104,176,0.02)]
-                       transition-all duration-200 group"
-          >
-            <div
-              className="w-14 h-14 rounded-full bg-[rgba(23,104,176,0.06)] flex items-center
-                         justify-center group-hover:bg-[rgba(23,104,176,0.1)] transition-colors"
-            >
-              <i className="fa-solid fa-camera text-xl" style={{ color: 'var(--accent)' }} />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-[--text] mb-1">Drop a photo of your room</p>
-              <p className="text-xs text-[--text-muted]">
-                or tap to browse · JPG, PNG or WEBP · max 10 MB
-              </p>
-            </div>
-          </div>
-          <button
-            disabled
-            className="w-full mt-4 py-4 text-[11px] font-bold tracking-[0.18em] uppercase
-                       rounded-lg cursor-not-allowed text-[rgba(26,26,26,0.35)]"
-            style={{ background: 'rgba(26,26,26,0.1)' }}
-          >
-            Generate →
-          </button>
-        </div>
+        <VisualiserZone />
       ) : (
         <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
           {outfit.items.map((item, i) => (
