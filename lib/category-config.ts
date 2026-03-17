@@ -15,6 +15,7 @@ export interface CategoryConfig {
   // outfits has gender-keyed tiles; all others use a flat array
   occasionTiles: Record<'men' | 'women' | 'all', Tile[]> | Tile[]
   showGenderFilter: boolean
+  supportsVisualise?: boolean
   systemPrompt: string
   // URL-encoded Kmart category filter string appended to the search URL.
   // Decoded form shown in comments. Empty string = no category restriction.
@@ -135,6 +136,7 @@ const HOME_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. cosy living room refresh with warm tones',
   occasionSectionLabel: 'Popular looks',
   showGenderFilter: false,
+  supportsVisualise: true,
   occasionTiles: [
     { label: 'Living Room Refresh', query: 'living room refresh with cushions, throws and a rug' },
     { label: 'Bedroom Makeover',    query: 'bedroom update with new linen, lighting and decor' },

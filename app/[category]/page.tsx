@@ -4,6 +4,7 @@ import { use, useState, useEffect, useRef } from 'react'
 import OutfitResults, { type Outfit } from '../components/OutfitResults'
 import { ProductCollections, type ProductCollection } from '../components/ProductCollections'
 import RefinementChips from '../components/RefinementChips'
+import VisualiserPanel, { type VisualiserContext } from '../components/VisualiserPanel'
 import Image from 'next/image'
 import {
   getCategoryConfig,
@@ -162,6 +163,28 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
   const [error, setError]         = useState<string | null>(null)
   const [gender, setGender]       = useState<Gender>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [visualiserOpen, setVisualiserOpen]       = useState(false)
+  const [visualiserContext, setVisualiserContext] = useState<VisualiserContext | null>(null)
+
+  // Hash-based navigation: browser back closes the visualiser
+  useEffect(() => {
+    function onPopState() {
+      if (window.location.hash !== '#visualise') setVisualiserOpen(false)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  function handleVisualise(outfitName: string, productName: string, productImageUrl: string) {
+    setVisualiserContext({ outfitName, productName, productImageUrl })
+    setVisualiserOpen(true)
+    window.location.hash = '#visualise'
+  }
+
+  function handleCloseVisualiser() {
+    setVisualiserOpen(false)
+    window.history.pushState('', document.title, window.location.pathname + window.location.search)
+  }
 
   // Outfit category: gender-keyed tiles; others: flat tile list
   const genderedTileMap = config.showGenderFilter
@@ -458,20 +481,29 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
         )}
       </section>
 
-      {result && refinements && (
+      {result && !visualiserOpen && refinements && (
         <RefinementChips
           chips={refinements}
           onRefine={chip => runSearch(`${query} — ${chip}`)}
         />
       )}
-      {result && (
+      {result && !visualiserOpen && (
         <OutfitResults
           outfits={result}
           groupLabel={config.itemGroupLabel}
           totalLabel={config.totalLabel}
+          onVisualise={config.supportsVisualise ? handleVisualise : undefined}
         />
       )}
-      {result && <ProductCollections collections={collections} />}
+      {result && !visualiserOpen && <ProductCollections collections={collections} />}
+      {visualiserOpen && visualiserContext && (
+        <VisualiserPanel
+          outfitName={visualiserContext.outfitName}
+          productName={visualiserContext.productName}
+          productImageUrl={visualiserContext.productImageUrl}
+          onClose={handleCloseVisualiser}
+        />
+      )}
     </div>
   )
 }
