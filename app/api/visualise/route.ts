@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 
-const MODEL = 'gemini-2.0-flash-preview-image-generation'
+const MODEL = 'gemini-2.5-flash-image'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
