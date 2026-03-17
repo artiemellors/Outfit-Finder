@@ -76,9 +76,11 @@ export async function POST(req: NextRequest) {
     }
 
     const nameList = products.map(p => p.name).join(', ')
-    const prompt = roomContext
-      ? `Place all of these items naturally into this ${roomContext} photo: ${nameList}. Arrange them with correct lighting, perspective, and scale. Keep the rest of the room unchanged.`
-      : `Place all of these items naturally into this room photo: ${nameList}. Arrange them with correct lighting, perspective, and scale. Keep the rest of the room unchanged.`
+    const contextPhrase = roomContext ? `this ${roomContext}` : 'this room'
+    const prompt = `This is a photo of ${contextPhrase}. I want you to add the following items into the photo: ${nameList}. ` +
+      `IMPORTANT: Do not alter the room in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, and any people or objects already in the photo. ` +
+      `Do not clean up, recolour, or recompose the scene. Only ADD the listed items as new objects placed naturally within the existing space, ` +
+      `matching the existing perspective, scale, and lighting conditions.`
 
     let result
     try {
@@ -132,9 +134,11 @@ export async function POST(req: NextRequest) {
   }
 
   // 3. Call Gemini image generation
-  const prompt = roomContext
-    ? `Place the ${productName} naturally into this ${roomContext} photo. Match the existing lighting, perspective, and scale. Keep the rest of the room unchanged.`
-    : `Place the ${productName} naturally into this room photo. Match the existing lighting, perspective, and scale. Keep the rest of the room unchanged.`
+  const contextPhrase = roomContext ? `this ${roomContext}` : 'this room'
+  const prompt = `This is a photo of ${contextPhrase}. I want you to add a ${productName} into the photo. ` +
+    `IMPORTANT: Do not alter the room in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, and any people or objects already in the photo. ` +
+    `Do not clean up, recolour, or recompose the scene. Only ADD the ${productName} as a new object placed naturally within the existing space, ` +
+    `matching the existing perspective, scale, and lighting conditions.`
 
   let result
   try {
