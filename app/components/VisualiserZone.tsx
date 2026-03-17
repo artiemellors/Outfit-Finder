@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 
 export interface VisualiserProduct {
   name: string
@@ -92,6 +93,8 @@ export default function VisualiserZone({
   const [genMode, setGenMode]         = useState<'single' | 'full'>('single')
   const [genError, setGenError]       = useState<string | null>(null)
   const [resultImage, setResultImage] = useState<string | null>(null)
+  const [genStep, setGenStep]         = useState(0)
+  const [genProgress, setGenProgress] = useState<{ current: number; total: number } | null>(null)
 
   const { phrase, visible } = useRotatingCopy(LOADING_PHRASES, genState === 'generating')
 
@@ -105,6 +108,8 @@ export default function VisualiserZone({
     setResultImage(null)
     setGenState('idle')
     setGenError(null)
+    setGenStep(0)
+    setGenProgress(null)
   }
 
   function resetPhoto() {
@@ -114,6 +119,8 @@ export default function VisualiserZone({
     setResultImage(null)
     setGenState('idle')
     setGenError(null)
+    setGenStep(0)
+    setGenProgress(null)
     if (inputRef.current) inputRef.current.value = ''
   }
 
@@ -122,6 +129,7 @@ export default function VisualiserZone({
     setResultImage(null)
     setGenState('idle')
     setGenError(null)
+    setGenProgress(null)
   }
 
   async function runGenerate(body: Record<string, unknown>) {
@@ -161,9 +169,10 @@ export default function VisualiserZone({
     setGenState('generating')
     setGenError(null)
     setResultImage(null)
+    setGenProgress(null)
 
     let currentImage = base64
-    for (const product of products) {
+    for (const [stepIndex, product] of products.entries()) {
       try {
         const res = await fetch('/api/visualise', {
           method: 'POST',
@@ -183,7 +192,11 @@ export default function VisualiserZone({
           return
         }
         currentImage = json.imageBase64
-        setResultImage(currentImage)
+        flushSync(() => {
+          setResultImage(currentImage)
+          setGenStep(s => s + 1)
+          setGenProgress({ current: stepIndex + 1, total: products.length })
+        })
       } catch {
         setGenError('Network error. Please check your connection and try again.')
         setGenState('idle')
@@ -266,7 +279,7 @@ export default function VisualiserZone({
         {displaySrc ? (
           <div className="relative w-full h-full min-h-[200px] group/preview">
             <img
-              key={resultImage ?? 'preview'}
+              key={genStep}
               src={displaySrc}
               alt={resultImage ? 'Your room with the product' : 'Your room'}
               className="w-full h-full object-cover"
@@ -304,6 +317,11 @@ export default function VisualiserZone({
                   >
                     {phrase}
                   </p>
+                  {genMode === 'full' && genProgress && (
+                    <p className="text-white/60 text-[11px] font-medium tracking-wide">
+                      {genProgress.current} / {genProgress.total} pieces
+                    </p>
+                  )}
                 </div>
               </div>
             )}
