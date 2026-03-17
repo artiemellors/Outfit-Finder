@@ -63,10 +63,11 @@ export async function POST(req: NextRequest) {
 
   const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
 
-  // ─── Multi-product (full look) path ───────────────────────────────────────
+  // ─── Multi-product (full look) path — sequential chaining ────────────────
   if (body.products && body.products.length > 0) {
     const { products } = body as FullLookBody
 
+    // Fetch all product images up-front (can be parallel)
     let productImages: Array<{ mimeType: string; data: string }>
     try {
       productImages = await Promise.all(products.map(p => fetchImageAsBase64(p.imageUrl)))
@@ -75,43 +76,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Could not retrieve one or more product images.' }, { status: 502 })
     }
 
-    const nameList = products.map(p => p.name).join(', ')
-    const contextPhrase = roomContext ? `this ${roomContext}` : 'this room'
-    const prompt = `This is a photo of ${contextPhrase}. I want you to add the following items into the photo: ${nameList}. ` +
-      `IMPORTANT: Do not alter the room in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, and any people or objects already in the photo. ` +
-      `Do not clean up, recolour, or recompose the scene. Only ADD the listed items as new objects placed naturally within the existing space, ` +
-      `matching the existing perspective, scale, and lighting conditions.`
+    // Chain: add one item at a time, feeding each result as the next base image
+    let currentImage: { mimeType: string; data: string } = userImage
 
-    let result
-    try {
-      result = await ai.models.generateContent({
-        model: MODEL,
-        contents: [{
-          role: 'user',
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: userImage.mimeType, data: userImage.data } },
-            ...productImages.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-          ],
-        }],
-        config: { responseModalities: ['IMAGE', 'TEXT'] },
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error('[visualise] Gemini API error (full look):', message, err)
-      return NextResponse.json({ error: `Image generation failed: ${message}` }, { status: 502 })
-    }
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i]
+      const productImage = productImages[i]
+      const contextPhrase = i === 0
+        ? (roomContext ? `this ${roomContext}` : 'this room')
+        : 'this photo'
 
-    for (const part of result.candidates?.[0]?.content?.parts ?? []) {
-      if (part.inlineData?.data) {
-        return NextResponse.json({
-          imageBase64: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+      const prompt = `This is a photo of ${contextPhrase}. I want you to add a ${product.name} into the photo. ` +
+        `IMPORTANT: Do not alter the scene in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, ` +
+        `and any people or objects already in the photo. ` +
+        `Do not clean up, recolour, or recompose the scene. Only ADD the ${product.name} as a new object placed naturally within the existing space, ` +
+        `matching the existing perspective, scale, and lighting conditions.`
+
+      let result
+      try {
+        result = await ai.models.generateContent({
+          model: MODEL,
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: currentImage.mimeType, data: currentImage.data } },
+              { inlineData: { mimeType: productImage.mimeType, data: productImage.data } },
+            ],
+          }],
+          config: { responseModalities: ['IMAGE', 'TEXT'] },
         })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(`[visualise] Gemini API error (full look step ${i + 1}):`, message, err)
+        return NextResponse.json({ error: `Image generation failed at step ${i + 1}: ${message}` }, { status: 502 })
       }
+
+      const imagePart = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)
+      if (!imagePart?.inlineData) {
+        console.error(`[visualise] Gemini returned no image at step ${i + 1}. Response:`, JSON.stringify(result, null, 2))
+        return NextResponse.json({ error: `No image returned at step ${i + 1}. Please try again.` }, { status: 502 })
+      }
+
+      currentImage = { mimeType: imagePart.inlineData.mimeType ?? 'image/png', data: imagePart.inlineData.data ?? '' }
     }
 
-    console.error('[visualise] Gemini returned no image (full look). Response:', JSON.stringify(result, null, 2))
-    return NextResponse.json({ error: 'No image was returned. Please try again.' }, { status: 502 })
+    return NextResponse.json({
+      imageBase64: `data:${currentImage.mimeType};base64,${currentImage.data}`,
+    })
   }
 
   // ─── Single-product path ──────────────────────────────────────────────────
