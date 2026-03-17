@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 
-const MODEL = 'gemini-2.0-flash-preview-image-generation'
+const MODEL = 'gemini-2.5-flash-image'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -84,8 +84,10 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('[visualise] Gemini API error:', err)
-    return NextResponse.json({ error: 'Image generation failed. Please try again.' }, { status: 502 })
+    const message = err instanceof Error ? err.message : String(err)
+    // Log the full error so it's visible in Render logs
+    console.error('[visualise] Gemini API error:', message, err)
+    return NextResponse.json({ error: `Image generation failed: ${message}` }, { status: 502 })
   }
 
   // 4. Extract the generated image from the response
