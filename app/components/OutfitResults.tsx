@@ -236,7 +236,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
                          : 'border-black/[0.12] text-[--text] hover:border-[--accent] hover:text-[--accent]'
                        }`}
           >
-            {visualiserOpen ? '← Back to your look' : 'See in your space →'}
+            {visualiserOpen ? '← Back to your look' : visualiseMode === 'outfit' ? 'See it on you →' : 'See in your space →'}
           </button>
         )}
       </div>
