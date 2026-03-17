@@ -215,6 +215,7 @@ const KITCHEN_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. complete cookware set for weeknight dinners',
   occasionSectionLabel: 'Popular sets',
   showGenderFilter: false,
+  supportsVisualise: true,
   occasionTiles: [
     { label: 'Sunday Roast',     query: 'roast dinner cookware and serving pieces' },
     { label: 'Weeknight Dinners', query: 'weeknight dinner pots, pans and utensils' },
@@ -281,6 +282,7 @@ const PARTIES_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. dinosaur theme birthday party for a 5 year old',
   occasionSectionLabel: 'Popular themes',
   showGenderFilter: false,
+  supportsVisualise: true,
   occasionTiles: [
     { label: 'Rainbow Birthday',  query: 'rainbow theme birthday party decorations and tableware' },
     { label: 'Dinosaur Party',    query: 'dinosaur theme party tableware, decorations and activities' },
