@@ -87,6 +87,7 @@ export default function VisualiserZone({
 
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [genState, setGenState]       = useState<GenState>('idle')
+  const [genMode, setGenMode]         = useState<'single' | 'full'>('single')
   const [genError, setGenError]       = useState<string | null>(null)
   const [resultImage, setResultImage] = useState<string | null>(null)
 
@@ -121,9 +122,7 @@ export default function VisualiserZone({
     setGenError(null)
   }
 
-  async function handleGenerate() {
-    const product = products[selectedIdx]
-    if (!base64 || !product) return
+  async function runGenerate(body: Record<string, unknown>) {
     setGenState('generating')
     setGenError(null)
     setResultImage(null)
@@ -131,12 +130,7 @@ export default function VisualiserZone({
       const res = await fetch('/api/visualise', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userImageBase64: base64,
-          productImageUrl: product.imageUrl,
-          productName: product.name,
-          roomContext,
-        }),
+        body: JSON.stringify({ userImageBase64: base64, roomContext, ...body }),
       })
       const json = await res.json()
       if (!res.ok || json.error) {
@@ -150,6 +144,19 @@ export default function VisualiserZone({
       setGenError('Network error. Please check your connection and try again.')
       setGenState('idle')
     }
+  }
+
+  async function handleGenerate() {
+    const product = products[selectedIdx]
+    if (!base64 || !product) return
+    setGenMode('single')
+    await runGenerate({ productImageUrl: product.imageUrl, productName: product.name })
+  }
+
+  async function handleGenerateFull() {
+    if (!base64 || products.length < 2) return
+    setGenMode('full')
+    await runGenerate({ products: products.map(p => ({ imageUrl: p.imageUrl, name: p.name })) })
   }
 
   function handleTryAgain() {
@@ -341,22 +348,40 @@ export default function VisualiserZone({
         <p className="mt-2 text-xs text-red-600">{genError}</p>
       )}
 
-      {/* Generate button — hidden once we have a result */}
+      {/* Generate button(s) — hidden once we have a result */}
       {genState !== 'done' && (
-        <button
-          type="button"
-          disabled={!canGenerate}
-          onClick={handleGenerate}
-          className={`w-full mt-4 py-4 text-[11px] font-bold tracking-[0.18em] uppercase
-                     rounded-lg transition-all duration-200
-                     ${canGenerate
-                       ? 'text-white hover:brightness-90 cursor-pointer active:scale-[0.99]'
-                       : 'cursor-not-allowed text-[rgba(26,26,26,0.35)]'
-                     }`}
-          style={{ background: canGenerate ? 'var(--accent)' : 'rgba(26,26,26,0.1)' }}
-        >
-          {genState === 'generating' ? 'Generating…' : 'Generate →'}
-        </button>
+        <div className="flex flex-col gap-2 mt-4">
+          <button
+            type="button"
+            disabled={!canGenerate}
+            onClick={handleGenerate}
+            className={`w-full py-4 text-[11px] font-bold tracking-[0.18em] uppercase
+                       rounded-lg transition-all duration-200
+                       ${canGenerate
+                         ? 'text-white hover:brightness-90 cursor-pointer active:scale-[0.99]'
+                         : 'cursor-not-allowed text-[rgba(26,26,26,0.35)]'
+                       }`}
+            style={{ background: canGenerate ? 'var(--accent)' : 'rgba(26,26,26,0.1)' }}
+          >
+            {genState === 'generating' && genMode === 'single' ? 'Generating…' : 'Generate →'}
+          </button>
+
+          {products.length > 1 && (
+            <button
+              type="button"
+              disabled={!canGenerate}
+              onClick={handleGenerateFull}
+              className={`w-full py-3.5 text-[11px] font-bold tracking-[0.18em] uppercase
+                         rounded-lg border transition-all duration-200
+                         ${canGenerate
+                           ? 'border-[--accent] text-[--accent] hover:bg-[rgba(23,104,176,0.06)] cursor-pointer active:scale-[0.99]'
+                           : 'border-black/[0.1] cursor-not-allowed text-[rgba(26,26,26,0.35)]'
+                         }`}
+            >
+              {genState === 'generating' && genMode === 'full' ? 'Generating…' : 'Visualise full look →'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
