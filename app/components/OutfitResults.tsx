@@ -139,10 +139,11 @@ function ItemCard({
   )
 }
 
-function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit' }: {
+function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit', onVisualise }: {
   outfit: Outfit
   groupLabel?: string
   totalLabel?: string
+  onVisualise?: (outfitName: string, productName: string, productImageUrl: string) => void
 }) {
   const [indices, setIndices] = useState<number[]>(() => outfit.items.map(() => 0))
   const [priceFlashing, setPriceFlashing] = useState(false)
@@ -216,6 +217,21 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
         >
           Shop All Pieces →
         </button>
+
+        {onVisualise && (
+          <button
+            onClick={() => {
+              const firstItem = outfit.items[0]
+              const product = firstItem?.alternatives[indices[0]]
+              if (product) onVisualise(outfit.name, product.name, product.imageUrl)
+            }}
+            className="w-full py-3.5 text-[11px] font-bold tracking-[0.18em] uppercase
+                       rounded transition-all duration-200 border border-black/[0.12]
+                       text-[--text] hover:border-[--accent] hover:text-[--accent] mt-2"
+          >
+            See in your space →
+          </button>
+        )}
       </div>
 
       {/* OutfitView — items list */}
@@ -238,10 +254,12 @@ export default function OutfitResults({
   outfits,
   groupLabel,
   totalLabel,
+  onVisualise,
 }: {
   outfits: Outfit[]
   groupLabel?: string
   totalLabel?: string
+  onVisualise?: (outfitName: string, productName: string, productImageUrl: string) => void
 }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
@@ -268,7 +286,7 @@ export default function OutfitResults({
         </div>
       </div>
 
-      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} />
+      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} onVisualise={onVisualise} />
     </div>
   )
 }
