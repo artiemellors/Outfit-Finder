@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export interface VisualiserProduct {
   name: string
@@ -10,6 +10,38 @@ export interface VisualiserProduct {
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES = 10 * 1024 * 1024   // 10 MB
 const MIN_DIM   = 400                // px
+
+const LOADING_PHRASES = [
+  'Dressing you up…',
+  'Placing your pieces…',
+  'Matching the light…',
+  'Getting the scale just right…',
+  'Setting the scene…',
+  'Almost there…',
+]
+
+function useRotatingCopy(phrases: string[], active: boolean) {
+  const [index, setIndex]   = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (!active) {
+      setIndex(0)
+      setVisible(true)
+      return
+    }
+    const timer = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex(i => (i + 1) % phrases.length)
+        setVisible(true)
+      }, 350)
+    }, 3200)
+    return () => clearInterval(timer)
+  }, [active, phrases.length])
+
+  return { phrase: phrases[index], visible }
+}
 
 async function validateAndRead(file: File): Promise<{ dataUrl: string } | { error: string }> {
   if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -57,6 +89,8 @@ export default function VisualiserZone({
   const [genState, setGenState]       = useState<GenState>('idle')
   const [genError, setGenError]       = useState<string | null>(null)
   const [resultImage, setResultImage] = useState<string | null>(null)
+
+  const { phrase, visible } = useRotatingCopy(LOADING_PHRASES, genState === 'generating')
 
   async function handleFile(file: File) {
     setUploadError(null)
@@ -127,6 +161,9 @@ export default function VisualiserZone({
   const selectedProduct = products[selectedIdx]
   const canGenerate = !!base64 && !!selectedProduct && genState === 'idle'
 
+  // What to display in the preview slot — result replaces original once done
+  const displaySrc = resultImage ?? preview
+
   return (
     <div className="self-stretch flex flex-col overflow-hidden" style={{ animation: 'fadeUp 0.3s ease both' }}>
       <input
@@ -175,34 +212,93 @@ export default function VisualiserZone({
         className={`flex-1 min-h-0 rounded-xl border-2 overflow-hidden transition-all duration-200
                     ${dragging
                       ? 'border-[--accent] bg-[rgba(23,104,176,0.04)]'
-                      : preview
+                      : displaySrc
                         ? 'border-black/[0.08] bg-white'
                         : 'border-dashed border-black/[0.12] bg-white hover:border-[--accent] hover:bg-[rgba(23,104,176,0.02)] group'
                     }
-                    ${genState === 'idle' ? 'cursor-pointer' : 'cursor-default'}`}
-        onClick={() => genState === 'idle' && inputRef.current?.click()}
+                    ${genState === 'idle' && !resultImage ? 'cursor-pointer' : 'cursor-default'}`}
+        onClick={() => genState === 'idle' && !resultImage && inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
       >
-        {preview ? (
+        {displaySrc ? (
           <div className="relative w-full h-full min-h-[200px] group/preview">
             <img
-              src={preview}
-              alt="Your room"
-              className={`w-full h-full object-cover transition-opacity duration-200 ${genState === 'generating' ? 'opacity-40' : ''}`}
+              key={resultImage ?? 'preview'}
+              src={displaySrc}
+              alt={resultImage ? 'Your room with the product' : 'Your room'}
+              className="w-full h-full object-cover"
+              style={resultImage ? { animation: 'fadeUp 0.5s ease both' } : undefined}
             />
 
-            {/* Spinner overlay while generating */}
+            {/* Shimmer + rotating copy while generating */}
             {genState === 'generating' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-                <div className="w-9 h-9 rounded-full border-[3px] border-white/30 border-t-white animate-spin" />
-                <p className="text-[--text] text-sm font-medium">Generating your room…</p>
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {/* Shimmer sweep */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.28) 50%, transparent 100%)',
+                    animation: 'shimmerSweep 2.2s ease-in-out infinite',
+                  }}
+                />
+                {/* Frosted scrim + copy at the bottom */}
+                <div
+                  className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-2.5 pt-10 pb-5 px-4"
+                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)' }}
+                >
+                  <div className="flex gap-1.5">
+                    {[0, 1, 2].map(i => (
+                      <div
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full bg-white"
+                        style={{ animation: `dotPulse 1.4s ease-in-out ${i * 0.22}s infinite` }}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    className="text-white text-sm font-medium text-center"
+                    style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.35s ease' }}
+                  >
+                    {phrase}
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Change photo button — idle only */}
-            {genState === 'idle' && (
+            {/* Done — actions pinned to the bottom of the image */}
+            {genState === 'done' && resultImage && (
+              <div
+                className="absolute inset-x-0 bottom-0 flex gap-2 p-3"
+                style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)',
+                  animation: 'fadeUp 0.4s ease both',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleTryAgain}
+                  className="flex-1 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase
+                             rounded bg-white/15 border border-white/30 text-white backdrop-blur-sm
+                             hover:bg-white/25 transition-all"
+                >
+                  Try again
+                </button>
+                <a
+                  href={resultImage}
+                  download="my-room.png"
+                  className="flex-1 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase
+                             rounded text-white text-center transition-all hover:brightness-90"
+                  style={{ background: 'var(--accent)' }}
+                >
+                  Save image
+                </a>
+              </div>
+            )}
+
+            {/* Change photo button — idle only, no result */}
+            {genState === 'idle' && !resultImage && (
               <div className="absolute inset-0 flex items-end justify-center pb-4 bg-black/0 group-hover/preview:bg-black/25 transition-colors duration-200">
                 <button
                   type="button"
@@ -243,36 +339,6 @@ export default function VisualiserZone({
       {/* API error */}
       {genError && (
         <p className="mt-2 text-xs text-red-600">{genError}</p>
-      )}
-
-      {/* Result image */}
-      {genState === 'done' && resultImage && (
-        <div
-          className="mt-4 rounded-xl overflow-hidden border border-black/[0.08] bg-white"
-          style={{ animation: 'fadeUp 0.4s ease both' }}
-        >
-          <img src={resultImage} alt="Your room with the product" className="w-full object-cover" />
-          <div className="flex gap-2 p-3">
-            <button
-              type="button"
-              onClick={handleTryAgain}
-              className="flex-1 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase
-                         rounded border border-black/[0.12] text-[--text]
-                         hover:border-black/30 transition-all"
-            >
-              Try again
-            </button>
-            <a
-              href={resultImage}
-              download="my-room.png"
-              className="flex-1 py-2.5 text-[11px] font-bold tracking-[0.15em] uppercase
-                         rounded text-white text-center transition-all hover:brightness-90"
-              style={{ background: 'var(--accent)' }}
-            >
-              Save image
-            </a>
-          </div>
-        </div>
       )}
 
       {/* Generate button — hidden once we have a result */}
