@@ -119,7 +119,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                     <img
                       src={p.imageUrl}
                       alt={p.name}
-                      className="aspect-[4/5] w-full object-contain transition-transform duration-300 group-hover:scale-[1.02] mix-blend-multiply"
+                      className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                       style={{ animation: `imgFadeIn 300ms ease-out` }}
                     />
                   ) : (
@@ -131,7 +131,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                     {p.name}
                   </p>
                   {p.colour && (
-                    <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-1.5">{p.colour}</p>
+                    <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-3">{p.colour}</p>
                   )}
                   <p className="font-bold text-[#1a1a1a] leading-none text-[24px]">
                     <span className="text-[16px] font-bold align-top" style={{ marginTop: '3px', display: 'inline-block' }}>$</span>
