@@ -139,14 +139,15 @@ function ItemCard({
   )
 }
 
-function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit', onVisualise }: {
+function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit', supportsVisualise }: {
   outfit: Outfit
   groupLabel?: string
   totalLabel?: string
-  onVisualise?: (outfitName: string, productName: string, productImageUrl: string) => void
+  supportsVisualise?: boolean
 }) {
   const [indices, setIndices] = useState<number[]>(() => outfit.items.map(() => 0))
   const [priceFlashing, setPriceFlashing] = useState(false)
+  const [visualiserOpen, setVisualiserOpen] = useState(false)
 
   const total = outfit.items.reduce((sum, item, i) => {
     return sum + parsePrice(item.alternatives[indices[i]]?.price ?? '$0')
@@ -218,34 +219,67 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
           Shop All Pieces →
         </button>
 
-        {onVisualise && (
+        {supportsVisualise && (
           <button
-            onClick={() => {
-              const firstItem = outfit.items[0]
-              const product = firstItem?.alternatives[indices[0]]
-              if (product) onVisualise(outfit.name, product.name, product.imageUrl)
-            }}
-            className="w-full py-3.5 text-[11px] font-bold tracking-[0.18em] uppercase
-                       rounded transition-all duration-200 border border-black/[0.12]
-                       text-[--text] hover:border-[--accent] hover:text-[--accent] mt-2"
+            onClick={() => setVisualiserOpen(v => !v)}
+            className={`w-full py-3.5 text-[11px] font-bold tracking-[0.18em] uppercase
+                       rounded transition-all duration-200 mt-2 border
+                       ${visualiserOpen
+                         ? 'border-[--accent] text-[--accent] bg-[rgba(23,104,176,0.04)]'
+                         : 'border-black/[0.12] text-[--text] hover:border-[--accent] hover:text-[--accent]'
+                       }`}
           >
-            See in your space →
+            {visualiserOpen ? '← Back to your look' : 'See in your space →'}
           </button>
         )}
       </div>
 
-      {/* OutfitView — items list */}
-      <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
-        {outfit.items.map((item, i) => (
-          <ItemCard
-            key={item.category}
-            item={item}
-            idx={indices[i]}
-            onIdxChange={newIdx => setIndices(prev => prev.map((v, j) => j === i ? newIdx : v))}
-            animDelay={120 + i * 60}
-          />
-        ))}
-      </div>
+      {/* OutfitView — right column: item cards OR visualiser zone */}
+      {visualiserOpen ? (
+        <div style={{ animation: 'fadeUp 0.3s ease both' }}>
+          {/* Upload zone — single column; image replaces this in Slice 4 */}
+          <div
+            className="rounded-xl border-2 border-dashed border-black/[0.12]
+                       bg-white flex flex-col items-center justify-center
+                       min-h-[320px] gap-4 p-8 cursor-pointer
+                       hover:border-[--accent] hover:bg-[rgba(23,104,176,0.02)]
+                       transition-all duration-200 group"
+          >
+            <div
+              className="w-14 h-14 rounded-full bg-[rgba(23,104,176,0.06)] flex items-center
+                         justify-center group-hover:bg-[rgba(23,104,176,0.1)] transition-colors"
+            >
+              <i className="fa-solid fa-camera text-xl" style={{ color: 'var(--accent)' }} />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-[--text] mb-1">Drop a photo of your room</p>
+              <p className="text-xs text-[--text-muted]">
+                or tap to browse · JPG, PNG or WEBP · max 10 MB
+              </p>
+            </div>
+          </div>
+          <button
+            disabled
+            className="w-full mt-4 py-4 text-[11px] font-bold tracking-[0.18em] uppercase
+                       rounded-lg text-white opacity-30 cursor-not-allowed"
+            style={{ background: 'var(--accent)' }}
+          >
+            Generate →
+          </button>
+        </div>
+      ) : (
+        <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
+          {outfit.items.map((item, i) => (
+            <ItemCard
+              key={item.category}
+              item={item}
+              idx={indices[i]}
+              onIdxChange={newIdx => setIndices(prev => prev.map((v, j) => j === i ? newIdx : v))}
+              animDelay={120 + i * 60}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -254,12 +288,12 @@ export default function OutfitResults({
   outfits,
   groupLabel,
   totalLabel,
-  onVisualise,
+  supportsVisualise,
 }: {
   outfits: Outfit[]
   groupLabel?: string
   totalLabel?: string
-  onVisualise?: (outfitName: string, productName: string, productImageUrl: string) => void
+  supportsVisualise?: boolean
 }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
@@ -286,7 +320,7 @@ export default function OutfitResults({
         </div>
       </div>
 
-      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} onVisualise={onVisualise} />
+      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} supportsVisualise={supportsVisualise} />
     </div>
   )
 }
