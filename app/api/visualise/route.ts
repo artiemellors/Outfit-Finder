@@ -159,42 +159,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not retrieve the product image.' }, { status: 502 })
   }
 
-  // 3. Call Gemini image generation
+  // 3. Call Gemini image generation — retry up to 3 times on text-only responses
   const contextPhrase = roomContext ? `this ${roomContext}` : 'this room'
   const prompt = buildPrompt(visualiseMode as VisualiseMode, productName, contextPhrase)
 
-  let result
-  try {
-    result = await ai.models.generateContent({
-      model: MODEL,
-      contents: [{
-        role: 'user',
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: userImage.mimeType, data: userImage.data } },
-          { inlineData: { mimeType: productImage.mimeType, data: productImage.data } },
-        ],
-      }],
-      config: {
-        responseModalities: ['IMAGE', 'TEXT'],
-      },
-    })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    // Log the full error so it's visible in Render logs
-    console.error('[visualise] Gemini API error:', message, err)
-    return NextResponse.json({ error: `Image generation failed: ${message}` }, { status: 502 })
-  }
-
-  // 4. Extract the generated image from the response
-  for (const part of result.candidates?.[0]?.content?.parts ?? []) {
-    if (part.inlineData?.data) {
-      return NextResponse.json({
-        imageBase64: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+  const MAX_ATTEMPTS = 3
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    let result
+    try {
+      result = await ai.models.generateContent({
+        model: MODEL,
+        contents: [{
+          role: 'user',
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: userImage.mimeType, data: userImage.data } },
+            { inlineData: { mimeType: productImage.mimeType, data: productImage.data } },
+          ],
+        }],
+        config: {
+          responseModalities: ['IMAGE', 'TEXT'],
+        },
       })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error('[visualise] Gemini API error:', message, err)
+      return NextResponse.json({ error: `Image generation failed: ${message}` }, { status: 502 })
     }
+
+    // 4. Extract the generated image from the response
+    for (const part of result.candidates?.[0]?.content?.parts ?? []) {
+      if (part.inlineData?.data) {
+        return NextResponse.json({
+          imageBase64: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+        })
+      }
+    }
+
+    console.warn(`[visualise] Gemini returned no image part (attempt ${attempt}/${MAX_ATTEMPTS}). Response:`, JSON.stringify(result, null, 2))
   }
 
-  console.error('[visualise] Gemini returned no image part. Full response:', JSON.stringify(result, null, 2))
   return NextResponse.json({ error: 'No image was returned. Please try again.' }, { status: 502 })
 }
