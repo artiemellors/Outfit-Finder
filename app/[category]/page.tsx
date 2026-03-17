@@ -470,6 +470,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
           groupLabel={config.itemGroupLabel}
           totalLabel={config.totalLabel}
           supportsVisualise={config.supportsVisualise}
+          visualiseMode={config.visualiseMode}
         />
       )}
       {result && <ProductCollections collections={collections} />}

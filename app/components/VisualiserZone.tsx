@@ -74,9 +74,11 @@ type GenState = 'idle' | 'generating' | 'done'
 export default function VisualiserZone({
   products = [],
   roomContext,
+  visualiseMode = 'room',
 }: {
   products?: VisualiserProduct[]
   roomContext?: string
+  visualiseMode?: 'room' | 'outfit'
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -130,7 +132,7 @@ export default function VisualiserZone({
       const res = await fetch('/api/visualise', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userImageBase64: base64, roomContext, ...body }),
+        body: JSON.stringify({ userImageBase64: base64, roomContext, visualiseMode, ...body }),
       })
       const json = await res.json()
       if (!res.ok || json.error) {

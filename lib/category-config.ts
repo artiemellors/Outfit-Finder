@@ -16,6 +16,7 @@ export interface CategoryConfig {
   occasionTiles: Record<'men' | 'women' | 'all', Tile[]> | Tile[]
   showGenderFilter: boolean
   supportsVisualise?: boolean
+  visualiseMode?: 'room' | 'outfit'
   systemPrompt: string
   // URL-encoded Kmart category filter string appended to the search URL.
   // Decoded form shown in comments. Empty string = no category restriction.
@@ -36,6 +37,8 @@ const OUTFITS_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. smart casual for a job interview',
   occasionSectionLabel: 'Popular occasions',
   showGenderFilter: true,
+  supportsVisualise: true,
+  visualiseMode: 'outfit',
   occasionTiles: {
     men: [
       { label: 'Stag Night',     query: 'night out for a stag party' },
@@ -215,6 +218,7 @@ const KITCHEN_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. complete cookware set for weeknight dinners',
   occasionSectionLabel: 'Popular sets',
   showGenderFilter: false,
+  supportsVisualise: true,
   occasionTiles: [
     { label: 'Sunday Roast',     query: 'roast dinner cookware and serving pieces' },
     { label: 'Weeknight Dinners', query: 'weeknight dinner pots, pans and utensils' },
@@ -281,6 +285,7 @@ const PARTIES_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. dinosaur theme birthday party for a 5 year old',
   occasionSectionLabel: 'Popular themes',
   showGenderFilter: false,
+  supportsVisualise: true,
   occasionTiles: [
     { label: 'Rainbow Birthday',  query: 'rainbow theme birthday party decorations and tableware' },
     { label: 'Dinosaur Party',    query: 'dinosaur theme party tableware, decorations and activities' },
