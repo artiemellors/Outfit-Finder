@@ -351,9 +351,75 @@ Each product has an "id", "name", "price", and "colour" field. When calling pres
   },
 }
 
+// ─── Easter ──────────────────────────────────────────────────────────────────
+
+const EASTER_CONFIG: CategoryConfig = {
+  slug: 'easter',
+  label: 'Easter',
+  heroHeadline: 'Make Easter memorable.',
+  heroSubline: 'Easter Curator',
+  searchPlaceholder: 'e.g. Easter egg hunt supplies for kids',
+  occasionSectionLabel: 'Popular looks',
+  showGenderFilter: false,
+  supportsVisualise: true,
+  occasionTiles: [
+    { label: 'Egg Hunt',      query: 'Easter egg hunt baskets, buckets and outdoor decorations' },
+    { label: 'Easter Table',  query: 'Easter table setting with tableware, centrepieces and decorations' },
+    { label: 'Easter Basket', query: 'Easter gift basket fillers, novelties and plush toys' },
+    { label: 'Easter Brunch', query: 'Easter brunch tableware, serveware and decorations' },
+    { label: 'Kids Easter',   query: 'kids Easter activity kit with crafts, games and novelties' },
+  ] as Tile[],
+  systemPrompt: `You are an Easter styling and gifting curator for Kmart Australia. Given a user's Easter request:
+1. In your FIRST response, call search_kmart and/or browse_collection for ALL relevant product types at once — emit all tool calls together. Max 5 calls total.
+   - Use browse_collection when a collection id is a strong match.
+   - Use search_kmart for specific product types not covered by a collection.
+2. Once you have results, call present_outfits — do NOT describe sets in text.
+
+Each product has an "id", "name", "price", and "colour" field. When calling present_outfits, reference products by their id only. Provide 2–3 named Easter sets. For each set, group items by category (Decorations, Tableware, Baskets, Activities, etc.) with 3–5 product alternatives per slot. Build cohesive sets by theme and colour. Favour pastel palettes and seasonal items. You MUST call present_outfits even if some searches returned no results. Do not use emojis in set names or descriptions.`,
+  // filters[Category][]=Decorations, Table Decor, Candles & Toppers, Balloons,
+  //   Party Plates & Bowls, Party Napkins, Party Cups, Party Serveware & Accessories,
+  //   Kids Art, Craft & Stationery, Pretend Play & Dress Up
+  categoryFilter:
+    '&filters%5BCategory%5D%5B%5D=Decorations' +
+    '&filters%5BCategory%5D%5B%5D=Table%20Decor' +
+    '&filters%5BCategory%5D%5B%5D=Candles%20%26%20Toppers' +
+    '&filters%5BCategory%5D%5B%5D=Balloons' +
+    '&filters%5BCategory%5D%5B%5D=Party%20Plates%20%26%20Bowls' +
+    '&filters%5BCategory%5D%5B%5D=Party%20Napkins' +
+    '&filters%5BCategory%5D%5B%5D=Party%20Cups' +
+    '&filters%5BCategory%5D%5B%5D=Party%20Serveware%20%26%20Accessories' +
+    '&filters%5BCategory%5D%5B%5D=Kids%20Art%2C%20Craft%20%26%20Stationery' +
+    '&filters%5BCategory%5D%5B%5D=Pretend%20Play%20%26%20Dress%20Up',
+  collectionKeywords: [
+    'easter', 'egg', 'bunny', 'rabbit', 'seasonal', 'basket', 'hunt', 'pastel',
+    'spring', 'chick', 'decoration', 'tableware', 'craft', 'activity',
+  ],
+  itemGroupLabel: 'Easter Set',
+  totalLabel: 'Complete Easter set',
+  loadingCopy: {
+    thinking: [
+      'Planning your Easter…',
+      'Getting into the Easter spirit…',
+      'Thinking through the theme…',
+    ],
+    searching: [
+      'Hunting for products…',
+      'Searching the shelves…',
+      'Finding the best picks…',
+      'Scanning the range…',
+    ],
+    curating: [
+      'Curating your Easter set…',
+      'Putting it all together…',
+      'Finishing touches…',
+      'Almost ready…',
+    ],
+  },
+}
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
-export const CATEGORY_SLUGS = ['outfits', 'home', 'kitchen', 'parties'] as const
+export const CATEGORY_SLUGS = ['outfits', 'home', 'kitchen', 'parties', 'easter'] as const
 export type CategorySlug = typeof CATEGORY_SLUGS[number]
 
 const CATEGORIES: Record<CategorySlug, CategoryConfig> = {
@@ -361,6 +427,7 @@ const CATEGORIES: Record<CategorySlug, CategoryConfig> = {
   home: HOME_CONFIG,
   kitchen: KITCHEN_CONFIG,
   parties: PARTIES_CONFIG,
+  easter: EASTER_CONFIG,
 }
 
 export function getCategoryConfig(slug: string): CategoryConfig {
