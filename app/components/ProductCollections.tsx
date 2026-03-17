@@ -67,31 +67,31 @@ export function ProductCollections({ collections }: { collections: ProductCollec
       )}
 
       {/* ProductCollections — sticky collection tab bar */}
-      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-white -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-3 mb-6 flex gap-2 overflow-x-auto sm:flex-wrap scrollbar-hide">
-        {isLoading ? (
-          <>
-            <div className={`skeleton h-8 w-28 ${useKosmos ? 'rounded' : 'rounded-full'}`} />
-            <div className={`skeleton h-8 w-24 ${useKosmos ? 'rounded' : 'rounded-full'}`} />
-            <div className={`skeleton h-8 w-32 ${useKosmos ? 'rounded' : 'rounded-full'}`} />
-          </>
-        ) : (
-          collections.map((col, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTab(i)}
-              className={`px-4 py-1.5 text-[13px] border transition-colors whitespace-nowrap shrink-0
-                ${useKosmos ? 'rounded' : 'rounded-full'}
-                ${i === activeTab
-                  ? 'border-[#1768B0] text-[#1768B0] bg-white font-medium'
-                  : useKosmos
-                    ? 'border-black/[0.15] text-[#909090] bg-white font-normal hover:border-[#1768B0] hover:text-[#1768B0]'
-                    : 'border-black/[0.08] text-[#909090] bg-white font-normal hover:border-black/20'
-                }`}
-            >
-              {col.name}
-            </button>
-          ))
-        )}
+      <div id="ProductCollections-tabbar" className="sticky top-20 z-10 bg-white -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 mb-6">
+        <div className="flex gap-0 overflow-x-auto scrollbar-hide border-b border-black/[0.08]">
+          {isLoading ? (
+            <>
+              <div className="skeleton h-4 w-20 mx-5 mb-3 rounded" />
+              <div className="skeleton h-4 w-16 mx-5 mb-3 rounded" />
+              <div className="skeleton h-4 w-24 mx-5 mb-3 rounded" />
+            </>
+          ) : (
+            collections.map((col, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab(i)}
+                className={`px-5 pb-3 pt-1 text-[11px] tracking-[0.12em]
+                            uppercase transition-all duration-200 whitespace-nowrap shrink-0 border-b-2
+                            ${i === activeTab
+                              ? `font-semibold ${useKosmos ? 'border-[#1768B0] text-[#1768B0]' : 'border-[--accent] text-[--accent]'}`
+                              : 'font-normal border-transparent text-black/30 hover:text-black/50'
+                            }`}
+              >
+                {col.name}
+              </button>
+            ))
+          )}
+        </div>
       </div>
 
       {/* ProductCollections — product grid */}
