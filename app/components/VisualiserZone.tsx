@@ -58,7 +58,7 @@ export default function VisualiserZone() {
   }
 
   return (
-    <div className="self-stretch flex flex-col" style={{ animation: 'fadeUp 0.3s ease both' }}>
+    <div className="self-stretch flex flex-col overflow-hidden" style={{ animation: 'fadeUp 0.3s ease both' }}>
       <input
         ref={inputRef}
         type="file"
@@ -69,7 +69,7 @@ export default function VisualiserZone() {
 
       {/* Upload / preview zone */}
       <div
-        className={`flex-1 rounded-xl border-2 overflow-hidden transition-all duration-200 cursor-pointer
+        className={`flex-1 min-h-0 rounded-xl border-2 overflow-hidden transition-all duration-200 cursor-pointer
                     ${dragging
                       ? 'border-[--accent] bg-[rgba(23,104,176,0.04)]'
                       : preview
