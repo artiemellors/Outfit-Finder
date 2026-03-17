@@ -158,7 +158,39 @@ export default function VisualiserZone({
   async function handleGenerateFull() {
     if (!base64 || products.length < 2) return
     setGenMode('full')
-    await runGenerate({ products: products.map(p => ({ imageUrl: p.imageUrl, name: p.name })) })
+    setGenState('generating')
+    setGenError(null)
+    setResultImage(null)
+
+    let currentImage = base64
+    for (const product of products) {
+      try {
+        const res = await fetch('/api/visualise', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userImageBase64: currentImage,
+            roomContext,
+            visualiseMode,
+            productImageUrl: product.imageUrl,
+            productName: product.name,
+          }),
+        })
+        const json = await res.json()
+        if (!res.ok || json.error) {
+          setGenError(json.error ?? 'Something went wrong. Please try again.')
+          setGenState('idle')
+          return
+        }
+        currentImage = json.imageBase64
+        setResultImage(currentImage)
+      } catch {
+        setGenError('Network error. Please check your connection and try again.')
+        setGenState('idle')
+        return
+      }
+    }
+    setGenState('done')
   }
 
   function handleTryAgain() {
