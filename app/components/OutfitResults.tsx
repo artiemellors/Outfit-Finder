@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import VisualiserZone from './VisualiserZone'
+import VisualiserZone, { type VisualiserProduct } from './VisualiserZone'
 
 const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
 
@@ -150,6 +150,11 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
   const [priceFlashing, setPriceFlashing] = useState(false)
   const [visualiserOpen, setVisualiserOpen] = useState(false)
 
+  const visualiserProducts: VisualiserProduct[] = outfit.items
+    .map((item, i) => item.alternatives[indices[i]])
+    .filter((p): p is Product => !!p?.imageUrl)
+    .map(p => ({ name: p.name, imageUrl: p.imageUrl }))
+
   const total = outfit.items.reduce((sum, item, i) => {
     return sum + parsePrice(item.alternatives[indices[i]]?.price ?? '$0')
   }, 0)
@@ -237,7 +242,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
 
       {/* OutfitView — right column: item cards OR visualiser zone */}
       {visualiserOpen ? (
-        <VisualiserZone />
+        <VisualiserZone products={visualiserProducts} roomContext={outfit.name} />
       ) : (
         <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
           {outfit.items.map((item, i) => (
