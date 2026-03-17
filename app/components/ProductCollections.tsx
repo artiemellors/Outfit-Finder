@@ -114,27 +114,27 @@ export function ProductCollections({ collections }: { collections: ProductCollec
                 className="flex flex-col group"
                 style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
               >
-                <div className="relative bg-white overflow-hidden rounded-[8px]">
+                <div className="relative bg-[#F4F5F6] overflow-hidden rounded-[8px]">
                   {p.imageUrl ? (
                     <img
                       src={p.imageUrl}
                       alt={p.name}
-                      className="aspect-[4/5] w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                      className="aspect-[4/5] w-full object-contain transition-transform duration-300 group-hover:scale-[1.02] mix-blend-multiply"
                       style={{ animation: `imgFadeIn 300ms ease-out` }}
                     />
                   ) : (
                     <div className="aspect-[4/5] w-full" />
                   )}
                 </div>
-                <div className="pt-2 pb-3 flex flex-col">
-                  <p className="text-[16px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-1">
+                <div className="pt-3 pb-4 flex flex-col">
+                  <p className="text-[16px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-2">
                     {p.name}
                   </p>
                   {p.colour && (
                     <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-1.5">{p.colour}</p>
                   )}
                   <p className="font-bold text-[#1a1a1a] leading-none text-[24px]">
-                    <span className="text-[16px] font-bold align-top">$</span>
+                    <span className="text-[16px] font-bold align-top" style={{ marginTop: '3px', display: 'inline-block' }}>$</span>
                     {p.price.startsWith('$') ? p.price.slice(1) : p.price}
                   </p>
                 </div>
