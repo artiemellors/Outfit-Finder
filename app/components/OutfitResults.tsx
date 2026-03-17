@@ -236,12 +236,12 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
 
       {/* OutfitView — right column: item cards OR visualiser zone */}
       {visualiserOpen ? (
-        <div style={{ animation: 'fadeUp 0.3s ease both' }}>
-          {/* Upload zone — single column; image replaces this in Slice 4 */}
+        <div className="self-stretch flex flex-col" style={{ animation: 'fadeUp 0.3s ease both' }}>
+          {/* Upload zone — flex-1 so it scales to fill height above the button */}
           <div
-            className="rounded-xl border-2 border-dashed border-black/[0.12]
+            className="flex-1 rounded-xl border-2 border-dashed border-black/[0.12]
                        bg-white flex flex-col items-center justify-center
-                       min-h-[320px] gap-4 p-8 cursor-pointer
+                       gap-4 p-8 cursor-pointer
                        hover:border-[--accent] hover:bg-[rgba(23,104,176,0.02)]
                        transition-all duration-200 group"
           >
@@ -261,8 +261,8 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
           <button
             disabled
             className="w-full mt-4 py-4 text-[11px] font-bold tracking-[0.18em] uppercase
-                       rounded-lg text-white opacity-30 cursor-not-allowed"
-            style={{ background: 'var(--accent)' }}
+                       rounded-lg cursor-not-allowed text-[rgba(26,26,26,0.35)]"
+            style={{ background: 'rgba(26,26,26,0.1)' }}
           >
             Generate →
           </button>
