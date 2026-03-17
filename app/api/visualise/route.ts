@@ -23,17 +23,35 @@ async function fetchImageAsBase64(url: string): Promise<{ mimeType: string; data
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
+type VisualiseMode = 'room' | 'outfit'
+
 type SingleBody = {
   userImageBase64: string
   productImageUrl: string
   productName: string
   roomContext?: string
+  visualiseMode?: VisualiseMode
 }
 
 type FullLookBody = {
   userImageBase64: string
   products: Array<{ imageUrl: string; name: string }>
   roomContext?: string
+  visualiseMode?: VisualiseMode
+}
+
+function buildPrompt(mode: VisualiseMode, productName: string, contextPhrase: string): string {
+  if (mode === 'outfit') {
+    return `This photo shows a person. I want to show what the ${productName} would look like on them. ` +
+      `IMPORTANT: Keep the person's pose, body, face, skin tone, hair, and background exactly as they are. ` +
+      `Only replace or overlay the relevant clothing/accessory item with the ${productName}, ` +
+      `matching the existing lighting, shadows, and perspective.`
+  }
+  return `This is a photo of ${contextPhrase}. I want you to add a ${productName} into the photo. ` +
+    `IMPORTANT: Do not alter the scene in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, ` +
+    `and any people or objects already in the photo. ` +
+    `Do not clean up, recolour, or recompose the scene. Only ADD the ${productName} as a new object placed naturally within the existing space, ` +
+    `matching the existing perspective, scale, and lighting conditions.`
 }
 
 export async function POST(req: NextRequest) {
@@ -45,7 +63,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 })
   }
 
-  const { userImageBase64, roomContext } = body
+  const { userImageBase64, roomContext, visualiseMode = 'room' } = body
 
   if (!userImageBase64) {
     return NextResponse.json({ error: 'Missing required field: userImageBase64.' }, { status: 400 })
@@ -86,11 +104,7 @@ export async function POST(req: NextRequest) {
         ? (roomContext ? `this ${roomContext}` : 'this room')
         : 'this photo'
 
-      const prompt = `This is a photo of ${contextPhrase}. I want you to add a ${product.name} into the photo. ` +
-        `IMPORTANT: Do not alter the scene in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, ` +
-        `and any people or objects already in the photo. ` +
-        `Do not clean up, recolour, or recompose the scene. Only ADD the ${product.name} as a new object placed naturally within the existing space, ` +
-        `matching the existing perspective, scale, and lighting conditions.`
+      const prompt = buildPrompt(visualiseMode as VisualiseMode, product.name, contextPhrase)
 
       let result
       try {
@@ -147,10 +161,7 @@ export async function POST(req: NextRequest) {
 
   // 3. Call Gemini image generation
   const contextPhrase = roomContext ? `this ${roomContext}` : 'this room'
-  const prompt = `This is a photo of ${contextPhrase}. I want you to add a ${productName} into the photo. ` +
-    `IMPORTANT: Do not alter the room in any way — preserve the exact walls, floor, ceiling, lighting, furniture, colours, and any people or objects already in the photo. ` +
-    `Do not clean up, recolour, or recompose the scene. Only ADD the ${productName} as a new object placed naturally within the existing space, ` +
-    `matching the existing perspective, scale, and lighting conditions.`
+  const prompt = buildPrompt(visualiseMode as VisualiseMode, productName, contextPhrase)
 
   let result
   try {

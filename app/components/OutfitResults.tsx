@@ -140,11 +140,12 @@ function ItemCard({
   )
 }
 
-function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit', supportsVisualise }: {
+function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Complete outfit', supportsVisualise, visualiseMode }: {
   outfit: Outfit
   groupLabel?: string
   totalLabel?: string
   supportsVisualise?: boolean
+  visualiseMode?: 'room' | 'outfit'
 }) {
   const [indices, setIndices] = useState<number[]>(() => outfit.items.map(() => 0))
   const [priceFlashing, setPriceFlashing] = useState(false)
@@ -242,7 +243,7 @@ function OutfitView({ outfit, groupLabel = 'Selected Look', totalLabel = 'Comple
 
       {/* OutfitView — right column: item cards OR visualiser zone */}
       {visualiserOpen ? (
-        <VisualiserZone products={visualiserProducts} roomContext={outfit.name} />
+        <VisualiserZone products={visualiserProducts} roomContext={outfit.name} visualiseMode={visualiseMode} />
       ) : (
         <div id="OutfitView-items" className="flex flex-col" style={{ gap: 'calc(var(--spacing) * 2)' }}>
           {outfit.items.map((item, i) => (
@@ -265,11 +266,13 @@ export default function OutfitResults({
   groupLabel,
   totalLabel,
   supportsVisualise,
+  visualiseMode,
 }: {
   outfits: Outfit[]
   groupLabel?: string
   totalLabel?: string
   supportsVisualise?: boolean
+  visualiseMode?: 'room' | 'outfit'
 }) {
   const [activeIdx, setActiveIdx] = useState(0)
 
@@ -296,7 +299,7 @@ export default function OutfitResults({
         </div>
       </div>
 
-      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} supportsVisualise={supportsVisualise} />
+      <OutfitView key={activeIdx} outfit={outfits[activeIdx]} groupLabel={groupLabel} totalLabel={totalLabel} supportsVisualise={supportsVisualise} visualiseMode={visualiseMode} />
     </div>
   )
 }

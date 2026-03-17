@@ -16,6 +16,7 @@ export interface CategoryConfig {
   occasionTiles: Record<'men' | 'women' | 'all', Tile[]> | Tile[]
   showGenderFilter: boolean
   supportsVisualise?: boolean
+  visualiseMode?: 'room' | 'outfit'
   systemPrompt: string
   // URL-encoded Kmart category filter string appended to the search URL.
   // Decoded form shown in comments. Empty string = no category restriction.
@@ -36,6 +37,8 @@ const OUTFITS_CONFIG: CategoryConfig = {
   searchPlaceholder: 'e.g. smart casual for a job interview',
   occasionSectionLabel: 'Popular occasions',
   showGenderFilter: true,
+  supportsVisualise: true,
+  visualiseMode: 'outfit',
   occasionTiles: {
     men: [
       { label: 'Stag Night',     query: 'night out for a stag party' },
