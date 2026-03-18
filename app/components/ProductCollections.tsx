@@ -61,7 +61,7 @@ export function ProductCollections({ collections }: { collections: ProductCollec
 
       {/* Section heading */}
       {useKosmos ? (
-        <p className="text-base font-bold text-[#1a1a1a] mt-8 mb-5">Shop the edit</p>
+        <p className="text-2xl font-bold text-[#1a1a1a] mt-8 mb-5">Shop the edit</p>
       ) : (
         <p className="text-xs font-bold tracking-[0.2em] uppercase text-[--text-muted] mt-8 mb-5">Shop the Edit</p>
       )}
