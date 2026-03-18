@@ -383,7 +383,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                          disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: '#1768B0' }}
             >
-              <i className={`fa-solid fa-sparkles text-[15px]${loading ? ' animate-search-rock' : ''}`} />
+              <i className={`fa-solid fa-wand-magic-sparkles text-[15px]${loading ? ' animate-search-rock' : ''}`} />
             </button>
           ) : (
             <button
@@ -396,7 +396,7 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
                          flex items-center gap-2"
               style={{ background: 'var(--accent)' }}
             >
-              <i className={`fa-solid fa-sparkles${loading ? ' animate-search-rock' : ''}`} />
+              <i className={`fa-solid fa-wand-magic-sparkles${loading ? ' animate-search-rock' : ''}`} />
               <span className="hidden sm:inline">Search</span>
             </button>
           )}
