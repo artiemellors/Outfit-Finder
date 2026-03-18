@@ -5,6 +5,29 @@ Render logs.
 
 ---
 
+## Tools Claude uses
+
+### Outfit recommendation — agentic tool-use loop (`claude-sonnet-4-6`)
+
+Claude runs in a multi-turn loop with three tools:
+
+| Tool | Purpose |
+|---|---|
+| `search_kmart` | Search Kmart.com.au for products matching a free-text query. Returns up to 10 products (id, name, price, colour). |
+| `browse_collection` | Browse a pre-curated Kmart collection by id. Returns the same product shape as `search_kmart`. |
+| `present_outfits` | **Terminal tool.** Claude calls this once to deliver its structured outfit picks and refinement chips. The loop ends when this is called. |
+
+Claude decides how many searches to run and may call `search_kmart`/`browse_collection` multiple times before calling `present_outfits`. All tool calls within a single turn are fired in parallel.
+
+### Collections — single structured JSON call (`claude-sonnet-4-6`)
+
+After outfits are delivered, a second independent Claude call takes all products that were
+scraped but *not* used in any outfit (the full pool) and groups them into 2–3 themed
+collections (e.g. "Resort Ready", "Weekend Edit"). No tools are used — Claude returns plain
+JSON. This runs after the main response is sent so it does not block the user.
+
+---
+
 ## /api/search
 
 ### Turn 1 — Claude decides what to search
