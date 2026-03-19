@@ -11,6 +11,7 @@ export interface CategoryConfig {
   heroHeadline: string
   heroSubline: string
   searchPlaceholder: string
+  exampleQueries: string[]
   occasionSectionLabel: string
   // outfits has gender-keyed tiles; all others use a flat array
   occasionTiles: Record<'men' | 'women' | 'all', Tile[]> | Tile[]
@@ -35,6 +36,18 @@ const OUTFITS_CONFIG: CategoryConfig = {
   heroHeadline: 'Find your complete look.',
   heroSubline: 'Style Intelligence',
   searchPlaceholder: 'e.g. smart casual for a job interview',
+  exampleQueries: [
+    'night out for a stag party',
+    'smart casual for a job interview',
+    'casual summer outfit for a man',
+    'gym look for a woman',
+    'beach day with the kids',
+    'date night, a bit dressed up',
+    'cosy winter layers',
+    'weekend brunch, something relaxed',
+    'streetwear for a teen boy',
+    "workwear that doesn't feel boring",
+  ],
   occasionSectionLabel: 'Popular occasions',
   showGenderFilter: true,
   supportsVisualise: true,
@@ -137,6 +150,16 @@ const HOME_CONFIG: CategoryConfig = {
   heroHeadline: 'Style your space.',
   heroSubline: 'Home Intelligence',
   searchPlaceholder: 'e.g. cosy living room refresh with warm tones',
+  exampleQueries: [
+    'living room refresh with cushions, throws and a rug',
+    'bedroom update with new linen, lighting and decor',
+    'outdoor entertaining area with rugs, cushions and lighting',
+    'gallery wall with frames and decorative accessories',
+    'cosy reading nook with soft furnishings and a lamp',
+    'dining room setting with table decor, candles and placemats',
+    'home office desk setup with storage and decor',
+    'kids bedroom with storage, lighting and fun decor',
+  ],
   occasionSectionLabel: 'Popular looks',
   showGenderFilter: false,
   supportsVisualise: true,
@@ -216,6 +239,16 @@ const KITCHEN_CONFIG: CategoryConfig = {
   heroHeadline: 'Kit out your kitchen.',
   heroSubline: 'Kitchen Intelligence',
   searchPlaceholder: 'e.g. complete cookware set for weeknight dinners',
+  exampleQueries: [
+    'roast dinner cookware and serving pieces',
+    'weeknight dinner pots, pans and utensils',
+    'brunch table setting with appliances and tableware',
+    'baking equipment, bakeware and storage',
+    'meal prep containers, knives and chopping boards',
+    'barbecue tools, platters and outdoor dining',
+    'coffee station with appliances, mugs and storage',
+    'kids lunch boxes, containers and drink bottles',
+  ],
   occasionSectionLabel: 'Popular sets',
   showGenderFilter: false,
   supportsVisualise: true,
@@ -283,6 +316,16 @@ const PARTIES_CONFIG: CategoryConfig = {
   heroHeadline: 'Plan the perfect party.',
   heroSubline: 'Party Intelligence',
   searchPlaceholder: 'e.g. dinosaur theme birthday party for a 5 year old',
+  exampleQueries: [
+    'rainbow theme birthday party decorations and tableware',
+    'dinosaur theme party tableware, decorations and activities',
+    'princess theme party supplies and dress up',
+    'superhero theme party decorations and costumes',
+    'unicorn party balloons, tableware and decorations',
+    'outdoor summer birthday party supplies for kids',
+    'movie night party setup for kids with decorations and snacks',
+    'arts and crafts activity party for children',
+  ],
   occasionSectionLabel: 'Popular themes',
   showGenderFilter: false,
   supportsVisualise: true,
@@ -359,6 +402,13 @@ const EASTER_CONFIG: CategoryConfig = {
   heroHeadline: 'Make Easter memorable.',
   heroSubline: 'Easter Curator',
   searchPlaceholder: 'e.g. Easter egg hunt supplies for kids',
+  exampleQueries: [
+    'Easter egg hunt baskets, buckets and outdoor decorations',
+    'Easter table setting with tableware, centrepieces and decorations',
+    'Easter gift basket fillers, novelties and plush toys',
+    'Easter brunch tableware, serveware and decorations',
+    'kids Easter activity kit with crafts, games and novelties',
+  ],
   occasionSectionLabel: 'Popular looks',
   showGenderFilter: false,
   supportsVisualise: true,

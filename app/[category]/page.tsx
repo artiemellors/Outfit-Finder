@@ -12,6 +12,51 @@ import {
   type CategoryConfig,
 } from '@/lib/category-config'
 
+// ─── Typewriter placeholder ───────────────────────────────────────────────────
+
+function useTypewriterPlaceholder(examples: string[], paused: boolean) {
+  const [text, setText] = useState('')
+  const pausedRef = useRef(paused)
+  useEffect(() => { pausedRef.current = paused }, [paused])
+
+  useEffect(() => {
+    let cancelled = false
+    const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
+
+    async function run() {
+      await sleep(600)
+      const queries = shuffle([...examples])
+      let qi = 0
+      while (!cancelled) {
+        if (pausedRef.current) { await sleep(200); continue }
+        const q = queries[qi++ % queries.length]
+        for (let i = 1; i <= q.length; i++) {
+          if (cancelled || pausedRef.current) break
+          setText(q.slice(0, i))
+          await sleep(52)
+        }
+        if (cancelled) break
+        await sleep(2400)
+        for (let i = q.length - 1; i >= 0; i--) {
+          if (cancelled || pausedRef.current) break
+          setText(q.slice(0, i))
+          await sleep(22)
+        }
+        if (cancelled) break
+        await sleep(380)
+        if (qi >= queries.length) {
+          queries.splice(0, queries.length, ...shuffle([...examples]))
+          qi = 0
+        }
+      }
+    }
+    run()
+    return () => { cancelled = true; setText('') }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return text
+}
+
 // ─── Loading state ────────────────────────────────────────────────────────────
 
 type PhaseCopy = CategoryConfig['loadingCopy']
@@ -162,6 +207,12 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
   const [error, setError]         = useState<string | null>(null)
   const [gender, setGender]       = useState<Gender>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [focused, setFocused]     = useState(false)
+
+  const typewriter = useTypewriterPlaceholder(
+    config.exampleQueries,
+    loading || focused || query.length > 0,
+  )
 
   // Outfit category: gender-keyed tiles; others: flat tile list
   const genderedTileMap = config.showGenderFilter
@@ -340,7 +391,9 @@ export default function CategoryPage({ params }: { params: Promise<{ category: s
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={config.searchPlaceholder}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={focused ? config.searchPlaceholder : typewriter}
             disabled={loading}
             className="flex-1 min-w-0 bg-transparent border-none outline-none px-6 py-[18px]
                        text-[#1a1a1a] placeholder:text-[rgba(26,26,26,0.35)]
