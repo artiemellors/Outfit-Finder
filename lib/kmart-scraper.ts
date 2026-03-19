@@ -4,6 +4,7 @@ export interface Product {
   colour?: string
   productUrl?: string
   imageUrl?: string
+  altImageUrl?: string
 }
 
 export interface Collection {
@@ -31,6 +32,23 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
       : item.productUrl != null ? String(item.productUrl)
       : item.pdpUrl != null ? String(item.pdpUrl)
       : undefined
+    const imageUrl = data?.image_url != null ? String(data.image_url)
+      : item.primaryImage != null
+        ? String((item.primaryImage as Record<string, unknown>).url ?? item.primaryImage)
+        : Array.isArray(item.images) && (item.images as unknown[]).length > 0
+          ? String(((item.images as Record<string, unknown>[])[0]).url ?? (item.images as unknown[])[0])
+          : item.imageUrl != null ? String(item.imageUrl)
+          : item.image != null ? String(item.image)
+          : item.thumbnail != null ? String(item.thumbnail)
+          : undefined
+    const altImageUrl = (() => {
+      if (!Array.isArray(item.images)) return undefined
+      for (const img of item.images as Record<string, unknown>[]) {
+        const url = String(img.url ?? img)
+        if (url && url !== 'undefined' && url !== imageUrl) return url
+      }
+      return undefined
+    })()
     return {
       name: String(
         item.value ??
@@ -49,15 +67,8 @@ function mapProducts(candidates: Record<string, unknown>[]): Product[] {
       productUrl: rawUrl != null
         ? rawUrl.startsWith('http') ? rawUrl : `https://www.kmart.com.au${rawUrl}`
         : undefined,
-      imageUrl: data?.image_url != null ? String(data.image_url)
-        : item.primaryImage != null
-          ? String((item.primaryImage as Record<string, unknown>).url ?? item.primaryImage)
-          : Array.isArray(item.images) && (item.images as unknown[]).length > 0
-            ? String(((item.images as Record<string, unknown>[])[0]).url ?? (item.images as unknown[])[0])
-            : item.imageUrl != null ? String(item.imageUrl)
-            : item.image != null ? String(item.image)
-            : item.thumbnail != null ? String(item.thumbnail)
-            : undefined,
+      imageUrl,
+      altImageUrl,
     }
   })
 }
