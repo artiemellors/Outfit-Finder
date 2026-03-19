@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const useKosmos = process.env.NEXT_PUBLIC_SHOW_NEW_FEATURE === 'true'
 
@@ -10,6 +10,7 @@ interface CollectionProduct {
   colour?: string
   productUrl?: string
   imageUrl?: string
+  altImageUrl?: string
 }
 
 export interface ProductCollection {
@@ -39,6 +40,68 @@ function SkeletonCard() {
         <div className="skeleton h-3 w-1/3 rounded mt-1" />
       </div>
     </div>
+  )
+}
+
+function KmartProductCard({ p, animDelay }: { p: CollectionProduct; animDelay: number }) {
+  const hasAlt = !!p.altImageUrl
+  const [showAlt, setShowAlt] = useState(false)
+
+  useEffect(() => {
+    if (!hasAlt) return
+    // Auto-cycle on touch/mobile devices (no hover support)
+    if (!window.matchMedia('(hover: hover)').matches) {
+      const id = setInterval(() => setShowAlt(v => !v), 2500)
+      return () => clearInterval(id)
+    }
+  }, [hasAlt])
+
+  return (
+    <a
+      href={p.productUrl ?? '#'}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-col"
+      style={{ animation: `fadeUp 300ms ${animDelay}ms ease both` }}
+      onMouseEnter={() => hasAlt && setShowAlt(true)}
+      onMouseLeave={() => hasAlt && setShowAlt(false)}
+    >
+      <div className="relative bg-[#F4F5F6] overflow-hidden rounded-[8px]">
+        <div className="aspect-[4/5] w-full relative">
+          {p.imageUrl && (
+            <img
+              src={p.imageUrl}
+              alt={p.name}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+              style={{
+                opacity: showAlt && hasAlt ? 0 : 1,
+                animation: 'imgFadeIn 300ms ease-out',
+              }}
+            />
+          )}
+          {hasAlt && (
+            <img
+              src={p.altImageUrl}
+              alt={p.name}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+              style={{ opacity: showAlt ? 1 : 0 }}
+            />
+          )}
+        </div>
+      </div>
+      <div className="pt-3 pb-4 flex flex-col">
+        <p className="text-[16px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-2">
+          {p.name}
+        </p>
+        {p.colour && (
+          <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-3">{p.colour}</p>
+        )}
+        <p className="font-bold text-[#1a1a1a] leading-none text-[24px]">
+          <span className="text-[16px] font-bold align-top" style={{ marginTop: '3px', display: 'inline-block' }}>$</span>
+          {p.price.startsWith('$') ? p.price.slice(1) : p.price}
+        </p>
+      </div>
+    </a>
   )
 }
 
@@ -104,41 +167,12 @@ export function ProductCollections({ collections }: { collections: ProductCollec
         ) : activeCollection ? (
           activeCollection.products.map((p, i) => (
             useKosmos ? (
-              /* Kmart-style card: borderless, grey image area, anko badge */
-              <a
+              /* Kmart-style card: borderless, grey image area */
+              <KmartProductCard
                 key={`${activeTab}-${i}`}
-                href={p.productUrl ?? '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                id="ProductCard"
-                className="flex flex-col group"
-                style={{ animation: `fadeUp 300ms ${i * 35}ms ease both` }}
-              >
-                <div className="relative bg-[#F4F5F6] overflow-hidden rounded-[8px]">
-                  {p.imageUrl ? (
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name}
-                      className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                      style={{ animation: `imgFadeIn 300ms ease-out` }}
-                    />
-                  ) : (
-                    <div className="aspect-[4/5] w-full" />
-                  )}
-                </div>
-                <div className="pt-3 pb-4 flex flex-col">
-                  <p className="text-[16px] font-normal leading-[1.3] line-clamp-2 text-[#1a1a1a] mb-2">
-                    {p.name}
-                  </p>
-                  {p.colour && (
-                    <p className="text-[11px] text-[rgba(26,26,26,0.5)] mb-3">{p.colour}</p>
-                  )}
-                  <p className="font-bold text-[#1a1a1a] leading-none text-[24px]">
-                    <span className="text-[16px] font-bold align-top" style={{ marginTop: '3px', display: 'inline-block' }}>$</span>
-                    {p.price.startsWith('$') ? p.price.slice(1) : p.price}
-                  </p>
-                </div>
-              </a>
+                p={p}
+                animDelay={i * 35}
+              />
             ) : (
               /* Original card */
               <a
