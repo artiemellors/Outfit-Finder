@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
   }
 
   const config = getCategoryConfig(category ?? 'outfits')
+  console.log(`\n${'='.repeat(60)}`)
+  console.log(`[Request] query="${query}" gender=${gender ?? 'none'} category=${category ?? 'outfits'}`)
 
   // Fetch category-relevant collections in parallel with building the prompt
   const availableCollections = await fetchCollections(config.collectionKeywords)
@@ -120,7 +122,14 @@ export async function POST(req: NextRequest) {
             tool_choice: { type: 'any' },
             messages,
           })
-          console.log(`[Claude] Turn ${turn} — stop_reason: ${response.stop_reason}, blocks: ${response.content.length}`)
+          console.log(`[Claude] Turn ${turn} — stop_reason: ${response.stop_reason}, blocks: ${response.content.length}, tokens: in=${response.usage.input_tokens} out=${response.usage.output_tokens}`)
+
+          // Log any reasoning/text Claude emits before tool calls
+          for (const block of response.content) {
+            if (block.type === 'text' && block.text.trim()) {
+              console.log(`[Claude] Thinking: ${block.text.slice(0, 500)}${block.text.length > 500 ? '…' : ''}`)
+            }
+          }
 
           messages.push({ role: 'assistant', content: response.content })
 
@@ -143,7 +152,13 @@ export async function POST(req: NextRequest) {
                   items: Array<{ category: string; description: string; alternatives: string[] }>
                 }>
               }).outfits
-              console.log(`[Claude] present_outfits called — ${Array.isArray(rawOutfits) ? rawOutfits.length : '?'} outfits`)
+              const outfitCount = Array.isArray(rawOutfits) ? rawOutfits.length : '?'
+              console.log(`[Claude] present_outfits called — ${outfitCount} outfits`)
+              if (Array.isArray(rawOutfits)) {
+                rawOutfits.forEach((o, i) => {
+                  console.log(`[Claude]   Outfit ${i + 1}: "${o.name}" — ${o.items?.length ?? 0} slots`)
+                })
+              }
 
               // Collect all product IDs referenced in outfit slots
               const usedInOutfits = new Set(
