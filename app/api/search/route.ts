@@ -282,7 +282,7 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
             allFetchBlocks.forEach(({ type, label }) => {
               send({ type: 'status', message: type === 'search' ? `Searching for "${label}"…` : `Browsing collection "${label}"…` })
             })
-            console.log(`[Claude] Fetching ${allFetchBlocks.length} sources in parallel: ${allFetchBlocks.map(f => `"${f.label}"`).join(', ')}`)
+            console.log(`[Claude] Tool calls (${allFetchBlocks.length}): ${allFetchBlocks.map(f => `${f.type === 'search' ? 'search_kmart' : 'browse_collection'}("${f.label}")`).join(', ')}`)
 
             const t0 = Date.now()
             const results = await Promise.all(
@@ -296,7 +296,7 @@ Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": nu
               const allProducts = config.showGenderFilter ? filterByGender(results[i], gender) : results[i]
               const products = allProducts.slice(0, 10)  // Claude sees top 10
               const si = searchIndex++
-              console.log(`[${type === 'search' ? 'Search' : 'Collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)
+              console.log(`[${type === 'search' ? 'search_kmart' : 'browse_collection'}] "${label}" → ${allProducts.length} total, ${products.length} to Claude`)
               if (products.length > 0) {
                 send({ type: 'status', message: `Found ${products.length} options for "${label}"` })
               } else {
