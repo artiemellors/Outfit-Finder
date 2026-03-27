@@ -216,6 +216,11 @@ A user searched for: "${query}".${gender && config.showGenderFilter ? ` The user
 Group these products into 2–3 themed collections that complement that search.
 Give each collection a short evocative name (e.g. "Resort Ready", "Off-Duty Cool", "Weekend Edit") that feels relevant to the user's intent.
 Aim for ${targetPerCollection} products per collection. Every product should appear in exactly one collection — distribute them all.
+
+Order the products array within each collection using this hybrid approach:
+1. Colour flow first — arrange by colour story (e.g. neutrals → warm tones → cool tones, or light → dark), so the grid reads as a cohesive visual sequence.
+2. Styling adjacency within each colour group — place items that would naturally be used or displayed together next to each other (e.g. a cushion next to a matching throw; plates next to matching cups; a basket next to its fillers). This makes the collection feel shoppable, not just pretty.
+
 Each product has a numeric "id" field. Use those exact id values in your response.
 Respond ONLY with valid JSON: { "collections": [{ "name": string, "products": number[] }] }`,
                     messages: [{
