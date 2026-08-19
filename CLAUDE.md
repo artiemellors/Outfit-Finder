@@ -3,8 +3,9 @@
 ## Project overview
 
 Next.js app that helps users find outfits by scraping Kmart.com.au product data and
-presenting AI-curated outfit recommendations. Uses Playwright (Firefox) for scraping
-and the Anthropic SDK for outfit matching.
+presenting AI-curated outfit recommendations. Product data comes from Kmart's Constructor.io
+search API over plain `fetch`; the Anthropic SDK handles outfit matching. Playwright is a
+dev-only dependency, used by the Kosmos MCP server and the scraper smoke test.
 
 ---
 
@@ -59,8 +60,9 @@ npm run test:scraper  # run the Kmart scraper smoke test (requires .env.local)
 ## Setup
 
 ```bash
-npm install               # installs deps + downloads Firefox via postinstall
-cd mcp-server && npm install  # installs MCP SDK
+npm install                     # installs deps
+npx playwright install firefox  # browser for the Kosmos MCP server + scraper test
+cd mcp-server && npm install    # installs MCP SDK
 ```
 
 ## Environment

@@ -6,19 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:scraper": "npx tsx scripts/test-scraper.ts",
-    "postinstall": "playwright install firefox"
+    "test:scraper": "npx tsx scripts/test-scraper.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@google/genai": "^1.45.0",
     "next": "^15.5.12",
-    "playwright": "^1.49.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
+    "playwright": "^1.49.0",
     "@types/node": "^20",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

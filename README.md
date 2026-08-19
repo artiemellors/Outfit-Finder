@@ -37,7 +37,6 @@ An AI-powered personal shopping assistant that builds complete outfit recommenda
 git clone <repo-url>
 cd Outfit-Finder
 npm install
-# postinstall automatically runs: npx playwright install firefox
 
 # 2. Set your API key
 cp .env.example .env.local

@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { searchKmart, browseCollection, fetchCollections, Product } from '@/lib/kmart-scraper'
 import { getCategoryConfig } from '@/lib/category-config'
 
+export const maxDuration = 60
+
 // Keyword-based gender filter applied at the data layer as a backstop.
 // Kmart product names reliably contain gendered terms we can check against.
 const WOMENS_TERMS = /\b(women'?s?|ladies|girl'?s?|feminine|womens)\b/i
