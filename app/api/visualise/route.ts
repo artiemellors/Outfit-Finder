@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 
+export const maxDuration = 60
+
 const MODEL = 'gemini-2.5-flash-image'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
